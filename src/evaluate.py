@@ -27,7 +27,8 @@ def main():
     p.add_argument("--data-root", required=True)
     p.add_argument("--splits-dir", default="splits")
     p.add_argument("--methods", nargs="+", required=True)
-    p.add_argument("--compression", default="c23", choices=["c0", "c23", "c40"])
+    p.add_argument("--compression", default="c23",
+                   choices=["c0", "c23", "c40", "c40proxy"])
     p.add_argument("--split", default="test", choices=["val", "test"])
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--num-workers", type=int, default=4)
