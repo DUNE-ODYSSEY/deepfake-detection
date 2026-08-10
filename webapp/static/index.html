@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deepfake Detection Demo</title>
+<style>
+  :root {
+    --bg: #0f172a; --panel: #1a2338; --border: #2a3654; --text: #e6ecff;
+    --muted: #93a1c4; --accent: #22b8cf; --danger: #f87171; --safe: #4ade80;
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    display: flex; justify-content: center; padding: 40px 20px;
+  }
+  main { width: 100%; max-width: 720px; }
+  h1 { font-size: 1.5rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+  .banner {
+    background: #3a2a12; border: 1px solid var(--warn); color: var(--warn);
+    padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 20px;
+    display: none;
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px;
+  }
+  .row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  select, button, input[type=file] {
+    background: #10182c; color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; font-size: 0.9rem;
+  }
+  button {
+    background: var(--accent); color: #06202a; font-weight: 600; cursor: pointer;
+    border: none;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #drop {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 30px;
+    text-align: center; color: var(--muted); cursor: pointer; margin-bottom: 16px;
+  }
+  #drop.drag { border-color: var(--accent); color: var(--accent); }
+  #preview { max-width: 100%; max-height: 260px; border-radius: 8px; display: none; margin: 0 auto 16px; }
+  #result { margin-top: 20px; display: none; }
+  .verdict { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+  .verdict.real { color: var(--safe); }
+  .verdict.fake { color: var(--danger); }
+  .bar-track { background: #10182c; border-radius: 6px; height: 10px; overflow: hidden; margin: 10px 0; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--safe), var(--danger)); }
+  .meta { color: var(--muted); font-size: 0.82rem; line-height: 1.6; }
+  .spinner { display: none; color: var(--muted); font-size: 0.9rem; }
+  .error { color: var(--danger); margin-top: 12px; font-size: 0.88rem; display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Deepfake Detection Demo</h1>
+  <p class="sub">XceptionNet vs. CNN-ViT hybrid, trained on FaceForensics++ (c23). Upload a face image or short clip.</p>
+  <div class="banner" id="banner"></div>
+
+  <div class="panel">
+    <div class="row">
+      <select id="modelSelect">
+        <option value="xception">XceptionNet (baseline)</option>
+        <option value="cnn_vit">CNN-ViT (hybrid)</option>
+      </select>
+      <button id="reloadBtn" title="Re-check for a newly finished checkpoint">Refresh model status</button>
+    </div>
+
+    <div id="drop">Click or drag an image / video here (jpg, png, mp4, mov...)</div>
+    <input type="file" id="fileInput" accept="image/*,video/*" style="display:none">
+    <img id="preview">
+
+    <div class="row">
+      <button id="predictBtn" disabled>Run detection</button>
+      <span class="spinner" id="spinner">Analyzing…</span>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div id="result">
+      <div class="verdict" id="verdict"></div>
+      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const predictBtn = document.getElementById('predictBtn');
+const modelSelect = document.getElementById('modelSelect');
+const banner = document.getElementById('banner');
+const spinner = document.getElementById('spinner');
+const errorBox = document.getElementById('error');
+const resultBox = document.getElementById('result');
+let selectedFile = null;
+
+async function refreshModelStatus() {
+  const res = await fetch('/api/models');
+  const status = await res.json();
+  const untrained = Object.entries(status).filter(([, v]) => !v.trained).map(([k]) => k);
+  if (untrained.length) {
+    banner.style.display = 'block';
+    banner.textContent = `Training still in progress for: ${untrained.join(', ')}. ` +
+      `Predictions from those models use an untrained head and are meaningless until training finishes.`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+document.getElementById('reloadBtn').onclick = async () => {
+  await fetch('/api/reload', { method: 'POST' });
+  await refreshModelStatus();
+};
+
+drop.onclick = () => fileInput.click();
+['dragover', 'dragleave', 'drop'].forEach(evt => {
+  drop.addEventListener(evt, e => {
+    e.preventDefault();
+    drop.classList.toggle('drag', evt === 'dragover');
+  });
+});
+drop.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.onchange = () => { if (fileInput.files.length) handleFile(fileInput.files[0]); };
+
+function handleFile(file) {
+  selectedFile = file;
+  predictBtn.disabled = false;
+  resultBox.style.display = 'none';
+  errorBox.style.display = 'none';
+  if (file.type.startsWith('image/')) {
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+  drop.textContent = `Selected: ${file.name}`;
+}
+
+predictBtn.onclick = async () => {
+  if (!selectedFile) return;
+  predictBtn.disabled = true;
+  spinner.style.display = 'inline';
+  errorBox.style.display = 'none';
+  resultBox.style.display = 'none';
+
+  const form = new FormData();
+  form.append('file', selectedFile);
+  try {
+    const res = await fetch(`/api/predict?model=${modelSelect.value}`, { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Prediction failed');
+
+    const pct = (data.fake_probability * 100).toFixed(1);
+    document.getElementById('verdict').textContent =
+      data.label === 'fake' ? `Likely FAKE (${pct}%)` : `Likely REAL (${(100 - pct).toFixed(1)}%)`;
+    document.getElementById('verdict').className = 'verdict ' + data.label;
+    document.getElementById('barFill').style.width = pct + '%';
+    document.getElementById('meta').textContent =
+      `model=${data.model} | frames analyzed=${data.frames_used} | ` +
+      (data.trained ? `checkpoint=${data.checkpoint}` : 'WARNING: untrained model, result is not meaningful');
+    resultBox.style.display = 'block';
+  } catch (err) {
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+  } finally {
+    spinner.style.display = 'none';
+    predictBtn.disabled = false;
+  }
+};
+
+refreshModelStatus();
+</script>
+</body>
+</html>
