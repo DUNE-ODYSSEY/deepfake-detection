@@ -1,13 +1,13 @@
 .venv/
 __pycache__/
 *.pyc
+logs/
 
 # large/local artifacts, not committed
-data/
+/data/
 runs/
 results/
 analysis/
-splits/
 *.pt
 *.mp4
 *.jpg
