@@ -68,9 +68,81 @@ batch size is estimated at roughly 15-25 GPU-hours total (not the
 against Drive paths, in case local training stalls. Preprocessing should
 still happen locally/once — never re-run MTCNN extraction per Colab session.
 
+## Status as of full-run session (2026-08-10 -> 2026-08-11)
+
+### Preprocessing
+
+- Kaggle mirror (`xdxd003/ff-c23`-style, `FaceForensics++_C23`) arranged into
+  the official layout at `C:/ffpp_data/ffpp_root`; matched `preprocess.py`'s
+  expectations exactly, no changes needed.
+- Ran `src/data/preprocess.py` on all 5,000 videos (real + 4 methods), c23,
+  20 frames/video -> ~99,987 face crops. Took ~5.5 hours of actual GPU time,
+  though wall-clock was much longer (see "sleep problem" below).
+
+### Official c40/c0 access never came through -> proxy-c40 workaround
+
+Official FaceForensics++ approval was still pending, and no c40/c0 Kaggle
+mirror exists. Rather than dropping the compression-robustness experiment
+entirely, added `scripts/make_c40proxy.py`: re-transcodes just the test-split
+videos (real + 4 methods, 700 videos) from c23 down to crf=40 with ffmpeg
+(via `imageio-ffmpeg`'s bundled binary), mirroring the official layout under
+a `c40proxy` label. **Caveat, not hidden in the results:** this is c23
+re-compressed a second time, not raw compressed once like official c40, so
+degradation is harsher/different from the real thing. Eval-only, never
+trained on.
+
+### Two bugs found and fixed
+
+1. **`.gitignore`'s unanchored `data/` rule was matching `src/data/` too** —
+   `preprocess.py`, `dataset.py`, `splits.py` had never actually been
+   committed since the very first import, despite being core to the whole
+   pipeline. Same issue silently excluded `splits/*.json`. Anchored to
+   `/data/`, both recovered and committed.
+2. **The laptop kept sleeping despite `powercfg standby-timeout-ac 0`** —
+   went to sleep 3 separate times during the unattended run (confirmed via
+   `Get-WinEvent` System log, ~2-2.5 hours dead time each), "Sleep Reason:
+   System Idle," despite the timeout being correctly set to never. Likely
+   Modern Standby (S0ix) on this Acer laptop has its own idle-sleep policy
+   that ignores the classic `STANDBYIDLE` timer. Fixed with an app-level
+   keep-awake (`scripts/keep_awake.ps1`, `SetThreadExecutionState` loop —
+   the same mechanism video players use), which Windows honors even under
+   Modern Standby. This is why the full run took ~14 hours of wall-clock
+   despite only needing a few hours of actual GPU-busy time.
+
+### Results (Experiments 1 & 2 full, Experiment 3 proxy)
+
+Baseline (same-distribution), c23:
+
+| model | video acc | video AUC |
+|---|---|---|
+| xception | 0.9729 | 0.9958 |
+| cnn_vit | 0.9471 | 0.9836 |
+
+Cross-manipulation generalization gap (same-manip AUC vs. cross-manip AUC):
+
+| model | same-manip AUC | cross-manip AUC | gap |
+|---|---|---|---|
+| xception | 0.9947 | 0.5969 | 0.398 |
+| cnn_vit | 0.9917 | 0.5710 | 0.421 |
+
+Compression robustness (c23 -> c40proxy, caveated per above):
+
+| model | c23 AUC | c40proxy AUC | drop |
+|---|---|---|---|
+| xception | 0.9958 | 0.8018 | 0.194 |
+| cnn_vit | 0.9836 | 0.8172 | 0.166 |
+
+**The original hypothesis (README: "the hybrid's off-diagonal AUC drops
+less") did not hold.** Xception has both higher same-distribution accuracy
+and a *smaller* generalization gap than the CNN-ViT hybrid in this run. The
+hybrid does show a smaller compression-robustness drop, but that's on the
+proxy-c40 set, not official. Worth reporting as a genuine (negative) result
+on the main hypothesis, not glossed over — full breakdown in
+`analysis/cross_manipulation_heatmaps.png` and the CSVs in `analysis/`.
+
 ## Next up
 
-1. Verify downloaded Kaggle data's folder layout against `preprocess.py`'s
-   expectations.
-2. Run `src/data/preprocess.py` on a handful of videos first as a dry run.
-3. Then the full experiment matrix via `scripts/run_all_experiments.sh`.
+1. Live demo webapp (`webapp/`) exists but was built before training
+   finished — point it at the now-trained checkpoints and verify end to end.
+2. If official FF++ approval ever comes through, re-run Experiment 3 against
+   real c0/c40 and compare against the proxy-c40 numbers above.

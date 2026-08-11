@@ -7,7 +7,6 @@ logs/
 /data/
 runs/
 results/
-analysis/
 *.pt
 *.mp4
 *.jpg
