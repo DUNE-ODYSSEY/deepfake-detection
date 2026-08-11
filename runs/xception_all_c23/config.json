@@ -1,0 +1,21 @@
+{
+  "data_root": "C:/ffpp_data/ffpp_faces",
+  "splits_dir": "splits",
+  "model": "xception",
+  "methods": [
+    "Deepfakes",
+    "Face2Face",
+    "FaceSwap",
+    "NeuralTextures"
+  ],
+  "compression": "c23",
+  "epochs": 15,
+  "batch_size": 32,
+  "lr": 0.0002,
+  "weight_decay": 0.0001,
+  "num_workers": 4,
+  "patience": 4,
+  "seed": 42,
+  "out": "runs/xception_all_c23",
+  "resume": true
+}

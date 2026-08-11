@@ -1,0 +1,2 @@
+runs/xception_all_c23/best.pt filter=lfs diff=lfs merge=lfs -text
+runs/cnn_vit_all_c23/best.pt filter=lfs diff=lfs merge=lfs -text
