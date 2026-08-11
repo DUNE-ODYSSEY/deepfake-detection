@@ -1,0 +1,5 @@
+model,train_compression,test_compression,video_acc,video_f1,video_auc
+cnn_vit,c23,c23,0.9471,0.9671,0.9836
+cnn_vit,c23,c40proxy,0.7629,0.8425,0.8172
+xception,c23,c23,0.9729,0.983,0.9958
+xception,c23,c40proxy,0.77,0.8502,0.8018
