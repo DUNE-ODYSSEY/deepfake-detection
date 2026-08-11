@@ -140,9 +140,74 @@ proxy-c40 set, not official. Worth reporting as a genuine (negative) result
 on the main hypothesis, not glossed over — full breakdown in
 `analysis/cross_manipulation_heatmaps.png` and the CSVs in `analysis/`.
 
+### Live demo (`webapp/`)
+
+Wired up to the trained checkpoints and verified end to end (image + video
+upload, both models) once training finished. Verified against a curated set
+of held-out test-split videos (see below) -- all correctly and confidently
+classified by xception; cnn_vit correct on the same set but visibly less
+confident on some, consistent with its lower baseline accuracy.
+
+**Sanity-checked against an out-of-distribution image** (a deepfake claim
+circulating online, not from FF++): both models confidently called it real.
+Not a bug -- expected given the generalization-gap numbers, and arguably a
+live demonstration of the study's own finding rather than a contradiction
+of it. Demo works correctly on in-distribution FF++ data; it is not a
+general-purpose deepfake detector and shouldn't be presented as one.
+
+Curated demo set (test-split, held out from training, all in
+`C:/ffpp_data/ffpp_root/`), verified live against the running API:
+
+| file | truth | xception | cnn_vit |
+|---|---|---|---|
+| `original_sequences/youtube/c23/videos/000.mp4` | real | real (0.038) | real (0.008) |
+| `original_sequences/youtube/c23/videos/003.mp4` | real | real (0.000) | - |
+| `original_sequences/youtube/c23/videos/015.mp4` | real | - | real (0.31) |
+| `original_sequences/youtube/c23/videos/024.mp4` | real | - | real (0.13) |
+| `manipulated_sequences/Deepfakes/c23/videos/000_003.mp4` | fake | fake (1.0) | fake (0.88) |
+| `manipulated_sequences/Face2Face/c23/videos/000_003.mp4` | fake | fake (1.0) | fake (0.997) |
+| `manipulated_sequences/FaceSwap/c23/videos/000_003.mp4` | fake | fake (1.0) | fake (0.9999) |
+| `manipulated_sequences/NeuralTextures/c23/videos/012_026.mp4` | fake | fake (1.0) | fake (0.999) |
+
+Note: cnn_vit got a *different* NeuralTextures test video
+(`003_000.mp4`) wrong during vetting (predicted real, 0.09) -- consistent
+with its lower baseline accuracy (94.7% vs. xception's 97.3%), not cherry-
+picked around.
+
+### Grad-CAM: visualizing why cross-manipulation generalization fails
+
+`analyze/gradcam.py` -- Grad-CAM on each model's last spatial feature map
+(xception: 2048x10x10 pre-pool; cnn_vit: the 1024x14x14 ResNet-C4 map
+feeding the transformer), computed w.r.t. the fake logit. Compares the same
+video (000_003) manipulated two different ways, using checkpoints trained
+on Deepfakes only (`*_Deepfakes_c23`) -- the source method for the single
+worst cross-manipulation cell in the whole matrix (DF->FS: xception AUC
+0.256, cnn_vit AUC 0.198, both *worse than random*). Output:
+`analyze/outputs/gradcam_comparison.png`.
+
+**Same-manip (Deepfakes, in-distribution):** xception's attention
+concentrates tightly on the central face (nose/mouth/eyes) -- exactly where
+Deepfakes' autoencoder-blending artifacts appear. Confident, correct
+(fake_prob=1.0), and interpretably correct.
+
+**Cross-manip (FaceSwap, same video, same checkpoint):** xception's
+attention collapses to a stray off-face hotspot near the background --
+essentially no face-relevant evidence found, so it defaults to "real"
+(fake_prob=0.0). cnn_vit's attention goes the opposite way: diffuse across
+the *entire* frame including the headscarf/background, not localized
+anywhere meaningful (fake_prob=0.0).
+
+This is a concrete visual account of the 0.20-0.26 AUC result: neither
+model is merely "uncertain" on unseen manipulation types -- each has
+confidently learned a narrow, method-specific signal, and neither falls
+back to anything sensible when that exact signal is absent. Worth including
+directly in the report/presentation alongside the generalization-gap table.
+
 ## Next up
 
-1. Live demo webapp (`webapp/`) exists but was built before training
-   finished — point it at the now-trained checkpoints and verify end to end.
-2. If official FF++ approval ever comes through, re-run Experiment 3 against
+1. If official FF++ approval ever comes through, re-run Experiment 3 against
    real c0/c40 and compare against the proxy-c40 numbers above.
+2. Possible follow-up: repeat the Grad-CAM comparison for a case where
+   cross-manip AUC is closer to 0.5 (genuine uncertainty) rather than the
+   worse-than-random DF->FS case, to see if the attention pattern differs
+   (confidently-wrong vs. genuinely-unsure).
