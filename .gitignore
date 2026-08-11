@@ -5,9 +5,15 @@ logs/
 
 # large/local artifacts, not committed
 /data/
-runs/
+runs/*
+!runs/xception_all_c23/
+!runs/xception_all_c23/best.pt
+!runs/cnn_vit_all_c23/
+!runs/cnn_vit_all_c23/best.pt
 results/
 *.pt
+!runs/xception_all_c23/best.pt
+!runs/cnn_vit_all_c23/best.pt
 *.mp4
 *.jpg
 *.jpeg
