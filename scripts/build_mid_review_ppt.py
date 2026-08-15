@@ -34,7 +34,7 @@ AMBER = RGBColor(0xF5, 0x9E, 0x0B)
 RED = RGBColor(0xDC, 0x26, 0x26)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
-TOTAL_SLIDES = 23
+TOTAL_SLIDES = 11
 PAGE = [0]
 
 
@@ -257,72 +257,24 @@ def main():
             [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 11, False, MUTED_L)])
     PAGE[0] += 1  # title slide counts toward the total but has no footer text
 
-    # 2. Agenda
-    content_slide(prs, "AGENDA", "What We'll Cover", [
-        "Introduction, motivation, and the problem being addressed",
-        "Objectives and scope of the study",
-        "Dataset, preprocessing, and exploratory data analysis",
-        "Model architectures: XceptionNet baseline vs. CNN-ViT hybrid",
-        "Training/validation methodology and evaluation metrics",
-        "Results: baseline comparison, cross-manipulation generalization, compression robustness",
-        "Interpretability (Grad-CAM) and the working live demo",
-        "Conclusion, honest limitations, and future work",
-    ])
+    # 2. Motivation, Problem & Objectives (combined)
+    content_slide(prs, "INTRODUCTION", "Motivation, Problem & Objectives", [
+        "Deepfakes have moved from research curiosity to a real misinformation/fraud vector — "
+        "but published detectors usually report one headline accuracy number, on the same "
+        "manipulation type and compression level they trained on.",
+        "Problem: that number is misleading in practice — a detector at 99% in a paper can be "
+        "~57% AUC (worse than random) the moment the test distribution shifts, and that failure "
+        "is invisible until deployment.",
+        "Objective 1: fairly compare XceptionNet (CNN baseline) vs. a CNN-ViT hybrid "
+        "(ResNet + Transformer) on identical data/protocol — does global self-attention "
+        "actually improve generalization?",
+        "Objective 2: measure same-distribution accuracy, full 4×4 cross-manipulation "
+        "generalization, and compression robustness — not just one number.",
+        "Objective 3: explain *why* generalization succeeds or fails (Grad-CAM), and ship a "
+        "working, testable live demo — not only offline metrics.",
+    ], size=15)
 
-    # 3. Introduction & Motivation
-    content_slide(prs, "INTRODUCTION", "Motivation", [
-        "Deepfakes — AI-manipulated face videos — have moved from research curiosity to a "
-        "real misinformation and fraud vector (fake news clips, impersonation scams, non-consensual media).",
-        "Most published detectors report a single headline accuracy number, usually on the same "
-        "manipulation type and compression level they were trained on.",
-        "That number is misleading in practice: real-world deepfakes rarely match a detector's "
-        "training distribution exactly — different generator, different compression, different source.",
-        "This project asks a more useful question than \"how accurate is it\": "
-        "“how much does accuracy collapse when the test distribution shifts, and does a more "
-        "modern architecture (attention-based) hold up better than a plain CNN?”",
-    ])
-
-    # 4. Problem Statement
-    content_slide(prs, "PROBLEM STATEMENT", "Real-World Relevance", [
-        "Problem: face-forgery detectors trained on one manipulation method or compression level "
-        "often fail silently on another — the failure isn't visible until deployment.",
-        "This matters wherever a detector is actually used: content moderation pipelines, "
-        "journalism verification tools, court-admissible evidence checks — all see manipulation "
-        "types and compression levels the model never trained on.",
-        "A detector that reports 99% accuracy in a paper but ~57% AUC (worse than random) on an "
-        "unseen manipulation method is not deployment-ready, even though its benchmark number looks excellent.",
-        "This project measures that gap directly and explains it visually (Grad-CAM), rather than "
-        "reporting a single flattering accuracy figure.",
-    ])
-
-    # 5. Objectives
-    content_slide(prs, "OBJECTIVES", "Objectives & Scope", [
-        "Train and fairly compare two architectures on identical data/protocol: XceptionNet "
-        "(CNN baseline, the standard FF++ detector) vs. a CNN-ViT hybrid (ResNet-50 features + "
-        "Transformer encoder, to test whether global self-attention improves generalization).",
-        "Measure same-distribution accuracy (Experiment 1: baseline comparison).",
-        "Measure cross-manipulation generalization: train on one forgery method, test on all four, "
-        "for a full 4×4 matrix per model (Experiment 2).",
-        "Measure compression robustness: does accuracy hold up under heavier video compression "
-        "(Experiment 3).",
-        "Explain *why* generalization succeeds or fails using Grad-CAM, not just report a number.",
-        "Ship a working, testable software artifact (live demo), not just offline metrics.",
-    ])
-
-    # 6. Literature grounding
-    content_slide(prs, "LITERATURE", "Grounding & References", [
-        "Rössler et al., “FaceForensics++: Learning to Detect Manipulated Facial Images” "
-        "(ICCV 2019) — source of the dataset and the standard 4-method/3-compression benchmark protocol used here.",
-        "Chollet, “Xception: Deep Learning with Depthwise Separable Convolutions” (CVPR 2017) "
-        "— the CNN baseline architecture, still a standard reference detector for this task.",
-        "Dosovitskiy et al., “An Image is Worth 16x16 Words: Transformers for Image Recognition "
-        "at Scale” (ICLR 2021) — motivates the Transformer-encoder half of the hybrid model.",
-        "Selvaraju et al., “Grad-CAM: Visual Explanations from Deep Networks via Gradient-based "
-        "Localization” (ICCV 2017) — the interpretability method used to explain the results.",
-        "Full citation list also included in the GitHub repository README.",
-    ], size=14)
-
-    # 7. Methodology overview (pipeline)
+    # 3. Methodology overview (pipeline)
     s = new_slide(prs)
     header(s, "METHODOLOGY", "End-to-End Pipeline")
     steps = [
@@ -348,97 +300,51 @@ def main():
                 [(d, 10.5, False, MUTED)])
     footer(s)
 
-    # 8. Dataset
-    content_slide(prs, "DATASET", "Description & Source", [
-        "FaceForensics++ (FF++) — the standard academic benchmark for face-forgery detection.",
-        "5,000 videos total: 1,000 real (YouTube interviews) + 4 × 1,000 manipulated, one set "
-        "per method — Deepfakes, Face2Face, FaceSwap, NeuralTextures — all sharing the same "
-        "real-video identities.",
-        "Compression: c23 (H.264, “light” compression, the standard training setting) via a "
-        "Kaggle mirror, arranged into the official FaceForensics++ folder layout.",
-        "Official train/val/test splits (video-level, from the FaceForensics++ GitHub) used "
-        "throughout — critical, since random frame-level splits would leak the same identity "
-        "into both train and test and inflate accuracy.",
-        "Official c0 (raw)/c40 (heavy compression) access was still pending at time of this "
-        "review — handled with a documented local workaround (see Compression Robustness slide).",
-    ], size=14.5)
-
-    # 9. Preprocessing
-    content_slide(prs, "METHODOLOGY", "Data Preprocessing", [
-        "Face extraction via MTCNN (facenet-pytorch), run on GPU: 20 frames sampled evenly per "
-        "video, each cropped to the detected face with a 1.3x margin (captures blending-boundary "
-        "artifacts just outside the tight face box, where manipulation seams often show).",
-        "Crops resized to 299×299 (fits both models: used directly for XceptionNet, "
-        "downsampled to 224×224 for the hybrid).",
-        "Result: ~99,987 face crops from all 5,000 videos (a handful of frames dropped where no "
-        "face was detected).",
-        "Real/fake class imbalance handled at training time via a weighted random sampler, not "
-        "by discarding data.",
-    ])
-
-    # 10. EDA
-    picture_slide(prs, "EDA", "Data Quality: Outlier Check (IQR)",
-                 "Per-video metadata (frame count, file size) checked via box-plot IQR across the "
-                 "5,000 videos actually used, before committing to full preprocessing.",
-                 "analyze/outputs/outlier_boxplots.png", Emu(7406640), Emu(3648169),
-                 stats_label="RESULT",
-                 stats=[("5,000", "videos analyzed (real + 4 methods)"),
-                        ("209", "flagged on frame count (4.2%)"),
-                        ("326", "flagged on file size (6.5%)"),
-                        ("502", "unique outliers overall (10.0%)")])
-
-    # 11. Model 1 Xception
-    content_slide(prs, "ALGORITHM SELECTION", "Model 1 — XceptionNet (Baseline)", [
-        "Standard CNN baseline for this exact task in the FF++ literature — depthwise-separable "
-        "convolutions (\"Xception\", Chollet 2017), ImageNet-pretrained backbone.",
-        "2048-d pooled features → dropout → single linear layer → real/fake logit.",
-        "Purely convolutional: local receptive fields, no explicit long-range spatial reasoning.",
-        "Chosen as the baseline specifically because it's the architecture most cross-manipulation "
-        "generalization claims in the literature are benchmarked against.",
-    ])
-
-    # 12. Model 2 CNN-ViT
-    content_slide(prs, "ALGORITHM SELECTION", "Model 2 — CNN-ViT Hybrid", [
-        "Hypothesis under test: does adding global self-attention on top of CNN features improve "
-        "cross-manipulation generalization, since attention can relate distant regions "
-        "(e.g. blending-boundary inconsistencies) that local convolutions can't see jointly?",
-        "ResNet-50 (stages 1–3, ImageNet-pretrained) extracts a 14×14×1024 feature map → "
-        "projected to 512-d tokens → CLS token + learned positional embeddings.",
-        "6-layer, 8-head Transformer encoder (pre-norm, GELU) over the 196 tokens + CLS.",
-        "CLS token → LayerNorm → linear head → real/fake logit.",
-        "Same optimizer, schedule, and data as XceptionNet — architecture is the only variable "
-        "between the two models, by design.",
-    ])
-
-    # 13. Training/validation methodology
-    content_slide(prs, "METHODOLOGY", "Training & Validation", [
-        "Mixed-precision (AMP) training, AdamW optimizer, cosine LR schedule, up to 15 epochs "
-        "with early stopping (patience 4 on validation video-AUC).",
-        "GPU capacity benchmarked first (RTX 3060 Laptop, 6GB): found XceptionNet silently "
-        "collapses in throughput above batch size 32 — not an OOM crash, but Windows paging GPU "
-        "memory into system RAM once allocation exceeds ~6.4GB (10–25x slower, not a crash). "
-        "Fixed by keeping batch size 32 for both models.",
-        "Resumable training (checkpoint every epoch) — verified in practice: the full run "
-        "survived multiple unplanned interruptions overnight without losing progress.",
-        "10 training runs total: 2 baseline (all-methods) + 8 cross-manipulation (one model × "
-        "one method each), all on identical protocol.",
+    # 4. Dataset, Preprocessing & EDA (combined)
+    content_slide(prs, "DATASET & PREPROCESSING", "Data: Source, Prep & Quality Check", [
+        "FaceForensics++ (FF++): 5,000 videos — 1,000 real (YouTube interviews) + 4×1,000 "
+        "manipulated (Deepfakes, Face2Face, FaceSwap, NeuralTextures), all sharing the same "
+        "real-video identities. c23 compression, official FF++ folder layout (Kaggle mirror).",
+        "Official video-level train/val/test splits used throughout — critical, since random "
+        "frame-level splits would leak identity between train/test and inflate accuracy.",
+        "Preprocessing: MTCNN face detection on GPU, 20 frames/video, 1.3x crop margin "
+        "(captures blending-boundary artifacts), resized to 299×299 (native for XceptionNet, "
+        "downsampled to 224 for the hybrid) → ~99,987 face crops total.",
+        "EDA/data-quality check: IQR outlier analysis on frame count & file size flagged 502 of "
+        "5,000 videos (10%) before committing to full preprocessing.",
+        "Real/fake class imbalance handled via a weighted random sampler at training time, not "
+        "by discarding data. Official c0/c40 access still pending — see Compression slide.",
     ], size=14)
 
-    # 14. Evaluation metrics
-    content_slide(prs, "METHODOLOGY", "Evaluation Metrics", [
-        "Accuracy, F1, and AUC — computed at both the frame level and the video level.",
-        "Video-level score = mean of that video's frame-level probabilities (standard FF++ "
-        "protocol) — the metric actually reported as “the” result, since real-world detection "
-        "is a per-video decision, not a per-frame one.",
-        "AUC (area under the ROC curve) is the primary metric for comparing generalization, since "
-        "it's threshold-independent — important because a model can be systematically "
-        "miscalibrated (all fakes scored low) rather than merely \"uncertain,\" and AUC still "
-        "exposes that.",
-        "36 total evaluations run: 2 baseline + 32 cross-manipulation (4×4 matrix × 2 models) + "
-        "2 compression-robustness.",
-    ])
+    # 5. Model architectures (comparison cards) + shared training/eval protocol
+    s = new_slide(prs)
+    header(s, "ALGORITHM SELECTION", "Models: XceptionNet vs. CNN-ViT Hybrid")
+    card_y, card_h = Emu(1750000), Emu(3000000)
+    card_w = Emu(5195000)
+    card(s, MARGIN, card_y, card_w, card_h, "XCEPTIONNET (BASELINE)", NAVY, [
+        "Depthwise-separable CNN (Chollet 2017), ImageNet-pretrained",
+        "2048-d pooled features → dropout → linear → logit",
+        "Purely convolutional — local receptive fields only",
+        "The standard reference detector for this exact task",
+    ], TEAL)
+    card(s, MARGIN + card_w + Emu(228600), card_y, card_w, card_h, "CNN-VIT HYBRID", TEAL, [
+        "ResNet-50 (stages 1-3) → 14×14×1024 map → 512-d tokens + CLS",
+        "6-layer, 8-head Transformer encoder over the tokens",
+        "Tests: does global self-attention improve generalization?",
+        "Same optimizer/schedule/data — architecture is the only variable",
+    ], NAVY)
+    strip_y = card_y + card_h + Emu(228600)
+    rect(s, MARGIN, strip_y, Emu(10852800), Emu(18288), GRID)
+    textbox(s, MARGIN, strip_y + Emu(180000), Emu(10852800), Emu(320040),
+            [("SHARED TRAINING & EVALUATION PROTOCOL (fair comparison — only the architecture differs)", 11, True, TEAL)])
+    textbox(s, MARGIN, strip_y + Emu(560000), Emu(10852800), Emu(900000),
+            [("AMP training, AdamW, cosine LR, batch size 32 (GPU-benchmarked — XceptionNet "
+              "silently throttles above this), early stopping (patience 4 on val AUC). "
+              "Metrics: Accuracy/F1/AUC at frame & video level (video = mean of frame "
+              "probabilities). 10 training runs, 36 evaluations total.", 13, False, MUTED)])
+    footer(s)
 
-    # 15. Results: baseline comparison
+    # 6. Results: baseline comparison
     table_slide(prs, "RESULTS · EXPERIMENT 1", "Baseline Comparison (same-distribution, c23)",
                "Both models trained and tested on all 4 methods — the headline accuracy number "
                "most papers stop at.",
@@ -449,27 +355,23 @@ def main():
                note="XceptionNet leads on every same-distribution metric — the first sign the "
                     "hybrid's extra complexity isn't paying off on this task.")
 
-    # 16. Results: cross-manipulation
-    picture_slide(prs, "RESULTS · EXPERIMENT 2", "Cross-Manipulation Generalization",
-                 "Train on one manipulation method, test on all four (4×4 matrix per model). "
-                 "Diagonal = same-manip; off-diagonal = the actual generalization test.",
-                 "analysis/cross_manipulation_heatmaps.png", Emu(9601200), Emu(3870968))
+    # 7. Results: cross-manipulation generalization (heatmap + finding, combined)
+    s = new_slide(prs)
+    header(s, "RESULTS · EXPERIMENT 2", "Cross-Manipulation Generalization")
+    textbox(s, MARGIN, Emu(1691640), Emu(10852800), Emu(400000),
+            [("Train on one manipulation method, test on all four (4×4 matrix per model). "
+              "Diagonal = same-manip; off-diagonal = the actual generalization test.",
+              13, False, MUTED)])
+    s.shapes.add_picture("analysis/cross_manipulation_heatmaps.png", MARGIN, Emu(2180000),
+                        width=Emu(7440000), height=Emu(3000000))
+    callout(s, MARGIN, Emu(5320000), Emu(10852800), Emu(1150000), "HEADLINE FINDING",
+           "Hypothesis (“attention generalizes better”) did NOT hold: XceptionNet has both "
+           "higher same-distribution AND cross-manip AUC (generalization gap 0.398 vs. "
+           "0.421) than the hybrid. Worst cell for both, DF→FS: 0.256 / 0.198 AUC — "
+           "worse than random.", RED)
+    footer(s)
 
-    # 17. Results: generalization gap table + finding
-    s = table_slide(prs, "RESULTS · EXPERIMENT 2", "Generalization Gap: Hypothesis vs. Reality",
-                    "Same-manipulation AUC vs. average cross-manipulation AUC, per model.",
-                    ["Model", "Same-Manip AUC", "Cross-Manip AUC", "Generalization Gap"],
-                    [["XceptionNet", "0.9947", "0.5969", "0.398"],
-                     ["CNN-ViT Hybrid", "0.9917", "0.5710", "0.421"]],
-                    [Emu(2600000), Emu(2600000), Emu(2600000), Emu(2600000)])
-    callout(s, MARGIN, Emu(4200000), Emu(10852800), Emu(1600000), "HEADLINE FINDING",
-           "The original hypothesis — “attention helps the hybrid generalize better” — did "
-           "NOT hold. XceptionNet has both higher same-distribution accuracy AND a smaller "
-           "generalization gap (0.398 vs. 0.421). Both models still collapse to worse-than-random "
-           "on their hardest cross-manip cell (Deepfakes→FaceSwap: 0.256 / 0.198 AUC) — reported "
-           "honestly as a genuine negative result, not hidden.", RED)
-
-    # 18. Results: compression robustness
+    # 8. Results: compression robustness
     s = table_slide(prs, "RESULTS · EXPERIMENT 3", "Compression Robustness (Proxy-c40)",
                     "Official c0/c40 FaceForensics++ access was still pending, and no c40 mirror "
                     "exists on Kaggle. Worked around it rather than skipping the experiment.",
@@ -484,86 +386,66 @@ def main():
            "used for evaluation only, never for training. Will re-run against official c0/c40 if "
            "FaceForensics++ approval arrives.", AMBER)
 
-    # 19. Grad-CAM
+    # 9. Grad-CAM (image + explanation folded into caption/stats — one slide)
     picture_slide(prs, "INTERPRETABILITY", "Grad-CAM: Why Generalization Fails",
-                 "Same video (000_003), same Deepfakes-only checkpoint, two manipulation methods. "
-                 "Top: same-manip (correct). Bottom: cross-manip to FaceSwap, its worst cell (correct "
-                 "→ confidently wrong).",
+                 "Same video, same Deepfakes-only checkpoint. Same-manip: attention locks onto "
+                 "the central face (blending artifacts). Cross-manip to FaceSwap (worst cell): "
+                 "attention collapses off-face — neither model falls back to anything sensible.",
                  "analyze/outputs/gradcam_comparison.png", Emu(5868000), Emu(4200000),
                  stats_label="DF → FS (worst cell)",
                  stats=[("0.256 / 0.198", "cross-manip AUC (xception / cnn_vit) — worse than random"),
                         ("1.000 → 0.000", "xception fake-prob: same-manip vs. cross-manip"),
                         ("face → background", "where attention shifts when the signal is absent")])
 
-    # 20. Grad-CAM explanation (text, paired with above conceptually)
-    content_slide(prs, "INTERPRETABILITY", "Reading the Grad-CAM Result", [
-        "Same-manipulation (Deepfakes): both models' attention concentrates tightly on the "
-        "central face — nose, mouth, eyes — exactly where Deepfakes' autoencoder-blending "
-        "artifacts appear. Confident AND interpretably correct.",
-        "Cross-manipulation (same video, FaceSwap): XceptionNet's attention collapses to a stray "
-        "off-face hotspot near the background — essentially no face-relevant evidence found, so "
-        "it defaults to “real.”",
-        "CNN-ViT's attention goes the opposite way: diffuse across the entire frame including the "
-        "background, not localized anywhere meaningful.",
-        "Conclusion: neither model is merely “uncertain” on unseen manipulation types — each "
-        "confidently learned a narrow, method-specific signal, with nothing sensible to fall back "
-        "on once that exact signal is absent. This is a visual account of the 0.20–0.26 AUC "
-        "result, not just a number.",
-    ], size=14)
-
-    # 21. Software implementation / demo
+    # 10. Software implementation / demo
     content_slide(prs, "SOFTWARE IMPLEMENTATION", "Live Demo", [
         "FastAPI backend + browser frontend: upload an image or short video, get a real/fake "
-        "probability from either trained checkpoint.",
-        "Pipeline mirrors training exactly: MTCNN face crop → model-specific resize/normalize "
-        "→ per-frame probability → video-level average (same protocol as evaluation).",
+        "probability from either trained checkpoint. Pipeline mirrors training exactly (MTCNN "
+        "crop → resize/normalize → per-frame probability → video-level average).",
         "Verified against a curated, held-out test-split set (never seen in training) — all "
-        "correctly and confidently classified by XceptionNet; CNN-ViT correct on the same set but "
-        "visibly less confident, consistent with its lower baseline accuracy.",
+        "correctly and confidently classified by XceptionNet; CNN-ViT correct but visibly less "
+        "confident, consistent with its lower baseline accuracy.",
         "Sanity-checked against an out-of-distribution image circulating online (not FF++ data): "
         "both models confidently wrong — expected given the generalization-gap numbers, and a "
         "live demonstration of this project's own finding rather than a contradiction of it.",
         "Runs on CPU by design, so it never competes with GPU training/evaluation jobs.",
-    ], size=14)
+    ], size=15)
 
-    # 22. Conclusion & Future Work
-    content_slide(prs, "CONCLUSION", "Conclusion & Future Enhancements", [
-        "XceptionNet outperforms the CNN-ViT hybrid on this task on every metric measured — "
-        "same-distribution accuracy, generalization gap, and (marginally) even most compression "
-        "conditions — contradicting the initial hypothesis that attention would help generalization.",
-        "Both architectures share the same underlying weakness: they learn narrow, "
-        "method-specific artifacts rather than a general “this face was manipulated” signal, "
-        "visually confirmed via Grad-CAM.",
-        "Future work: re-run compression robustness against official c0/c40 once "
-        "FaceForensics++ access is approved, replacing the documented proxy; repeat training with "
-        "multiple random seeds for statistical confidence intervals; extend Grad-CAM to a "
-        "genuinely-uncertain cross-manip cell (AUC near 0.5) rather than only the "
-        "worse-than-random case, to see if the attention pattern differs.",
-        "Practical implication: any deployed face-forgery detector needs either training data "
-        "covering the manipulation types it will face, or an explicit “unknown/out-of-distribution” "
-        "fallback — a confident wrong answer, as shown here, is worse than an honest “I don't know.”",
-    ], size=14)
-
-    # 23. References + Contributors + repo
+    # 11. Conclusion, Future Work, References & Contributors (combined closing)
     s = new_slide(prs)
-    header(s, "REFERENCES & CONTRIBUTORS", "Closing")
-    bullets(s, MARGIN, Emu(1783080), Emu(10852800), Emu(2200000), [
-        "Rössler, A. et al. (2019). FaceForensics++: Learning to Detect Manipulated Facial Images. ICCV.",
-        "Chollet, F. (2017). Xception: Deep Learning with Depthwise Separable Convolutions. CVPR.",
-        "Dosovitskiy, A. et al. (2021). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. ICLR.",
-        "Selvaraju, R. R. et al. (2017). Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization. ICCV.",
-    ], size=12.5, space_after=10)
-    rect(s, MARGIN, Emu(4100000), Emu(10852800), Emu(18288), GRID)
-    textbox(s, MARGIN, Emu(4300000), Emu(6000000), Emu(320040),
-            [("CONTRIBUTOR", 11, True, TEAL)])
-    textbox(s, MARGIN, Emu(4650000), Emu(6000000), Emu(400000),
-            [("Venugopalan Gangadharan", 16, True, TEXT)])
-    textbox(s, MARGIN, Emu(5050000), Emu(6000000), Emu(320040),
-            [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 12, False, MUTED)])
-    textbox(s, MARGIN, Emu(5550000), Emu(6000000), Emu(320040),
-            [("GITHUB REPOSITORY", 11, True, TEAL)])
-    textbox(s, MARGIN, Emu(5900000), Emu(10000000), Emu(400000),
-            [("github.com/DUNE-ODYSSEY/deepfake-detection", 14, True, CYAN)])
+    header(s, "CONCLUSION", "Key Takeaways & Closing")
+    left_w = Emu(6350000)
+    bullets(s, MARGIN, Emu(1783080), left_w, Emu(4400000), [
+        "XceptionNet outperforms the CNN-ViT hybrid on every metric measured — same-distribution "
+        "accuracy, generalization gap, and most compression conditions — contradicting the "
+        "hypothesis that attention would help generalization.",
+        "Both architectures share the same weakness: narrow, method-specific artifacts rather "
+        "than a general \"manipulated\" signal — confirmed visually via Grad-CAM.",
+        "Future work: official c0/c40 once approved (replacing the proxy), multi-seed runs for "
+        "statistical confidence, Grad-CAM on a genuinely-uncertain cell.",
+        "Practical takeaway: a deployed detector needs training coverage of its target "
+        "manipulation types, or an explicit \"unknown\" fallback — confident-wrong is worse "
+        "than honest uncertainty.",
+    ], size=13.5, space_after=12)
+
+    right_x = MARGIN + left_w + Emu(228600)
+    right_w = SLIDE_W - right_x - MARGIN
+    textbox(s, right_x, Emu(1783080), right_w, Emu(320040), [("REFERENCES", 11, True, TEAL)])
+    bullets(s, right_x, Emu(2130000), right_w, Emu(1900000), [
+        "Rössler et al. (2019). FaceForensics++. ICCV.",
+        "Chollet (2017). Xception. CVPR.",
+        "Dosovitskiy et al. (2021). ViT. ICLR.",
+        "Selvaraju et al. (2017). Grad-CAM. ICCV.",
+    ], size=10.5, space_after=7)
+    rect(s, right_x, Emu(4100000), right_w, Emu(18288), GRID)
+    textbox(s, right_x, Emu(4260000), right_w, Emu(320040), [("CONTRIBUTOR", 11, True, TEAL)])
+    textbox(s, right_x, Emu(4560000), right_w, Emu(360000),
+            [("Venugopalan Gangadharan", 14, True, TEXT)])
+    textbox(s, right_x, Emu(4910000), right_w, Emu(500000),
+            [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 10.5, False, MUTED)])
+    textbox(s, right_x, Emu(5450000), right_w, Emu(320040), [("GITHUB REPOSITORY", 11, True, TEAL)])
+    textbox(s, right_x, Emu(5750000), right_w, Emu(500000),
+            [("github.com/DUNE-ODYSSEY/deepfake-detection", 11.5, True, CYAN)])
     footer(s)
 
     out = "docs/mid_review_update.pptx"
