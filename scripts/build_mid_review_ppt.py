@@ -37,6 +37,15 @@ WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 TOTAL_SLIDES = 11
 PAGE = [0]
 
+# Same team roster as slides/build_mid_sem_ppt.py in the
+# Mondrian-Conformal-Prediction-On-Discrete-Event-Simulation repo (same org).
+TEAM = [
+    ("Venugopalan Gangadharan", "CB.AI.U4AID25115"),
+    ("Vipin Sudhakar", "CB.AI.U4AID25166"),
+    ("Rithvik Arulprakash", "CB.AI.U4AID25148"),
+    ("Harshith Kv", "CB.AI.U4AID25119"),
+]
+
 
 def new_slide(prs, bg=WHITE):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
@@ -251,8 +260,8 @@ def main():
               "full pipeline run, both models trained, results analyzed, "
               "and a working live demo.", 14, False, MUTED_L)])
     rect(s, MARGIN, Emu(5074920), Emu(457200), Emu(27432), CYAN)
-    textbox(s, MARGIN, Emu(5989320), Emu(7315200), Emu(320040),
-            [("Venugopalan Gangadharan", 13, True, RGBColor(0xE5, 0xE9, 0xF0))])
+    textbox(s, MARGIN, Emu(5989320), Emu(10852800), Emu(320040),
+            [(" · ".join(name for name, _ in TEAM), 13, True, RGBColor(0xE5, 0xE9, 0xF0))])
     textbox(s, MARGIN, Emu(6263640), Emu(7315200), Emu(274320),
             [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 11, False, MUTED_L)])
     PAGE[0] += 1  # title slide counts toward the total but has no footer text
@@ -431,20 +440,21 @@ def main():
     right_x = MARGIN + left_w + Emu(228600)
     right_w = SLIDE_W - right_x - MARGIN
     textbox(s, right_x, Emu(1783080), right_w, Emu(320040), [("REFERENCES", 11, True, TEAL)])
-    bullets(s, right_x, Emu(2130000), right_w, Emu(1900000), [
+    bullets(s, right_x, Emu(2130000), right_w, Emu(950000), [
         "Rössler et al. (2019). FaceForensics++. ICCV.",
         "Chollet (2017). Xception. CVPR.",
         "Dosovitskiy et al. (2021). ViT. ICLR.",
         "Selvaraju et al. (2017). Grad-CAM. ICCV.",
-    ], size=10.5, space_after=7)
-    rect(s, right_x, Emu(4100000), right_w, Emu(18288), GRID)
-    textbox(s, right_x, Emu(4260000), right_w, Emu(320040), [("CONTRIBUTOR", 11, True, TEAL)])
-    textbox(s, right_x, Emu(4560000), right_w, Emu(360000),
-            [("Venugopalan Gangadharan", 14, True, TEXT)])
-    textbox(s, right_x, Emu(4910000), right_w, Emu(500000),
-            [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 10.5, False, MUTED)])
-    textbox(s, right_x, Emu(5450000), right_w, Emu(320040), [("GITHUB REPOSITORY", 11, True, TEAL)])
-    textbox(s, right_x, Emu(5750000), right_w, Emu(500000),
+    ], size=10, space_after=5)
+    rect(s, right_x, Emu(3100000), right_w, Emu(18288), GRID)
+    textbox(s, right_x, Emu(3260000), right_w, Emu(320040), [("CONTRIBUTORS", 11, True, TEAL)])
+    bullets(s, right_x, Emu(3600000), right_w, Emu(1080000),
+            [f"{name} — {roll}" for name, roll in TEAM],
+            size=10.5, color=TEXT, bold=True, space_after=6)
+    textbox(s, right_x, Emu(4700000), right_w, Emu(360000),
+            [("AI & Data Science — Amrita Vishwa Vidyapeetham, Coimbatore", 10, False, MUTED)])
+    textbox(s, right_x, Emu(5150000), right_w, Emu(320040), [("GITHUB REPOSITORY", 11, True, TEAL)])
+    textbox(s, right_x, Emu(5450000), right_w, Emu(500000),
             [("github.com/DUNE-ODYSSEY/deepfake-detection", 11.5, True, CYAN)])
     footer(s)
 
