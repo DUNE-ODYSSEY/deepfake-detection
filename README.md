@@ -38,8 +38,12 @@ then use their `download.py`. For this project you need:
 `original_sequences/youtube` + the four `manipulated_sequences` methods, at
 c23 and c40 (add c0/raw if disk allows; c23+c40 ≈ 40 GB, raw is ~500 GB).
 
-**Faster route for a course project:** Kaggle hosts FF++ c23/c40 mirrors
-(search "FaceForensics++"). Arrange the files into the official layout above.
+**Faster route for a course project (what this repo actually used):** Kaggle
+mirror, c23 only —
+https://www.kaggle.com/datasets/xdxd003/ff-c23 — arranged into the official
+layout above. Official c0/c40 approval was still pending at time of writing,
+so c40 was approximated locally instead; see `scripts/make_c40proxy.py` and
+`PROJECT_LOG.md` for that workaround and its documented caveats.
 
 Also download `train.json`, `val.json`, `test.json` from
 https://github.com/ondyari/FaceForensics/tree/master/dataset/splits into a

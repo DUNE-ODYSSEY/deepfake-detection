@@ -72,8 +72,9 @@ still happen locally/once — never re-run MTCNN extraction per Colab session.
 
 ### Preprocessing
 
-- Kaggle mirror (`xdxd003/ff-c23`-style, `FaceForensics++_C23`) arranged into
-  the official layout at `C:/ffpp_data/ffpp_root`; matched `preprocess.py`'s
+- Kaggle mirror (https://www.kaggle.com/datasets/xdxd003/ff-c23,
+  `FaceForensics++_C23`) arranged into the official layout at
+  `C:/ffpp_data/ffpp_root`; matched `preprocess.py`'s
   expectations exactly, no changes needed.
 - Ran `src/data/preprocess.py` on all 5,000 videos (real + 4 methods), c23,
   20 frames/video -> ~99,987 face crops. Took ~5.5 hours of actual GPU time,
