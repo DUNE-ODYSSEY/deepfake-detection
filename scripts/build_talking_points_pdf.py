@@ -22,7 +22,7 @@ RED = colors.HexColor("#DC2626")
 
 # (presenter, [(slide_no, slide_title, mm:ss, [talking points])])
 SCRIPT = [
-    ("Vipin Sudhakar", "0:00", "3:15", [
+    ("Rithvik Arulprakash", "0:00", "3:15", [
         (1, "Title", "0:30", [
             "Good [morning/afternoon]. We're presenting our mid-review update for our "
             "AIML course project, 23AID205: Deepfake Detection -- comparing "
@@ -31,7 +31,7 @@ SCRIPT = [
             "first experiment's results. Cross-manipulation generalization, "
             "compression robustness, interpretability, and the live demo are all "
             "underway and will be presented in full at the final review.",
-            "I'm Vipin -- I'll open with the motivation and our methodology, then "
+            "I'm Rithvik -- I'll open with the motivation and our methodology, then "
             "hand off to my teammates.",
         ]),
         (2, "Motivation, Problem & Objectives", "1:30", [
@@ -54,11 +54,11 @@ SCRIPT = [
             "As of today, steps 1 through 3 -- the entire data pipeline -- are complete, "
             "and we've carried steps 4 and 5 through for our first experiment. The "
             "remaining training and analysis work continues for Experiments 2 and 3.",
-            "Handoff: \"Rithvik will now walk you through our dataset work, which is "
+            "Handoff: \"Vipin will now walk you through our dataset work, which is "
             "fully complete.\"",
         ]),
     ]),
-    ("Rithvik Arulprakash", "3:15", "2:30", [
+    ("Vipin Sudhakar", "3:15", "2:30", [
         (4, "Dataset & Preprocessing — Complete", "1:30", [
             "FaceForensics++: 5,000 videos total -- 1,000 real YouTube interviews plus "
             "4,000 manipulated, 1,000 each across four methods: Deepfakes, Face2Face, "
