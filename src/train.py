@@ -83,15 +83,17 @@ def main():
 
     start_epoch, best_auc, bad_epochs = 0, -1.0, 0
     ckpt_last, ckpt_best = out / "last.pt", out / "best.pt"
+    history_path = out / "history.json"
+    history = json.loads(history_path.read_text()) if history_path.exists() else []
     if args.resume and ckpt_last.exists():
         state = torch.load(ckpt_last, map_location=device)
         model.load_state_dict(state["model"])
         opt.load_state_dict(state["opt"])
         sched.load_state_dict(state["sched"])
         start_epoch, best_auc = state["epoch"] + 1, state["best_auc"]
+        history = [row for row in history if row["epoch"] < start_epoch]
         print(f"resumed at epoch {start_epoch} (best val AUC {best_auc:.4f})")
 
-    history = []
     for epoch in range(start_epoch, args.epochs):
         model.train()
         t0, losses = time.time(), []
