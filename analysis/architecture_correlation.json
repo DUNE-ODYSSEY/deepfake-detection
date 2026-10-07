@@ -1,0 +1,11 @@
+{
+  "n_cells": 12,
+  "pearson_r": 0.9377,
+  "pearson_p": 6.668248604624814e-06,
+  "spearman_r": 0.951,
+  "spearman_p": 2.0384246324655774e-06,
+  "source_files": [
+    "analysis/cross_manipulation_xception.csv",
+    "analysis/cross_manipulation_cnn_vit.csv"
+  ]
+}
