@@ -1,0 +1,33 @@
+{
+  "args": {
+    "data_root": "C:/ffpp_data/ffpp_faces_ref_smoke",
+    "splits_dir": "splits",
+    "model": "xception",
+    "methods": [
+      "Deepfakes"
+    ],
+    "compression": "c23",
+    "epochs": 2,
+    "batch_size": 16,
+    "lr": 0.0002,
+    "weight_decay": 0.0001,
+    "num_workers": 0,
+    "patience": 4,
+    "seed": 42,
+    "out": "experiments/phase1/smoke_runs/reference_xception_Deepfakes_c23/seed42",
+    "resume": false,
+    "dataset_source": "mirror"
+  },
+  "git_commit": "5801358caecffd85cdceeabfbb5958cfe4cae319",
+  "package_versions": {
+    "torch": "2.6.0+cu124",
+    "torchvision": "0.21.0+cu124",
+    "timm": "1.0.28"
+  },
+  "gpu_name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "seed": 42,
+  "dataset_source": "mirror",
+  "status": "done",
+  "best_val_auc": 1.0,
+  "final_epoch": 1
+}

@@ -1,0 +1,2 @@
+train_method,test_method,current_pipeline_auc,reference_pipeline_auc,delta,current_below_chance,reference_below_chance
+DF,FS,0.2562,0.75,0.4938,True,False

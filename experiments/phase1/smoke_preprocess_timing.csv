@@ -1,0 +1,22 @@
+video_id,method,compression,status,n_frames_sampled,n_frames_saved,seconds
+001,real,c23,32 frames,32,32,37.716
+002,real,c23,32 frames,32,32,37.15
+005,real,c23,32 frames,32,32,15.15
+006,real,c23,32 frames,32,32,16.399
+007,real,c23,32 frames,32,32,12.365
+001_870,Deepfakes,c23,32 frames,32,32,38.189
+002_006,Deepfakes,c23,32 frames,32,32,37.191
+005_010,Deepfakes,c23,32 frames,32,32,14.735
+006_002,Deepfakes,c23,32 frames,32,32,35.66
+007_132,Deepfakes,c23,32 frames,32,32,13.451
+001_870,FaceSwap,c23,32 frames,32,32,38.619
+002_006,FaceSwap,c23,32 frames,32,32,37.332
+005_010,FaceSwap,c23,32 frames,32,32,15.431
+006_002,FaceSwap,c23,32 frames,32,32,36.989
+007_132,FaceSwap,c23,32 frames,32,32,13.336
+004,real,c23,32 frames,32,32,15.408
+023,real,c23,32 frames,32,32,5.768
+004_982,Deepfakes,c23,32 frames,32,32,15.289
+023_923,Deepfakes,c23,32 frames,32,32,5.746
+004_982,FaceSwap,c23,32 frames,32,32,15.289
+023_923,FaceSwap,c23,32 frames,32,32,5.959
