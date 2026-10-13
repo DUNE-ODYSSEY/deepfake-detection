@@ -1,10 +1,16 @@
 """Frame-level dataset over preprocessed FF++ face crops.
 
-Index layout produced by preprocess.py:
-  <root>/<comp>/<real|Method>/<video_id>/frame_xxxxx.jpg
+Index layout produced by preprocess.py (JPEG) or preprocess_reference.py (PNG):
+  <root>/<comp>/<real|Method>/<video_id>/frame_xxxxx.{jpg,png}
 Labels: real=0, fake=1.
 """
 from pathlib import Path
+
+
+def _list_frames(vdir: Path):
+    """Crops may be .jpg (preprocess.py) or .png (preprocess_reference.py) —
+    glob both so the same dataset class serves either pipeline's output."""
+    return sorted(list(vdir.glob("*.jpg")) + list(vdir.glob("*.png")))
 
 import torch
 from PIL import Image
@@ -44,7 +50,7 @@ class FFPPDataset(Dataset):
         real_dir = comp_dir / "real"
         for vdir in sorted(real_dir.iterdir()) if real_dir.exists() else []:
             if vdir.name in real_ids:
-                for f in sorted(vdir.glob("*.jpg")):
+                for f in _list_frames(vdir):
                     self.samples.append((f, 0, f"real/{vdir.name}"))
 
         for method in methods:
@@ -53,7 +59,7 @@ class FFPPDataset(Dataset):
                 raise FileNotFoundError(f"Missing preprocessed dir: {mdir}")
             for vdir in sorted(mdir.iterdir()):
                 if vdir.name in fake_ids:
-                    for f in sorted(vdir.glob("*.jpg")):
+                    for f in _list_frames(vdir):
                         self.samples.append((f, 1, f"{method}/{vdir.name}"))
 
         if not self.samples:

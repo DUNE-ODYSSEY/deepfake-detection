@@ -1,0 +1,2 @@
+model,train_method,test_method,compression,seed,video_auc,ci_lo,ci_hi,n_videos,file
+xception,Deepfakes,FaceSwap,c23,42,0.75,0.0,1.0,4,experiments\phase1\smoke_results_named\xception_Deepfakes_to_FaceSwap_c23_seed42.json

@@ -1,0 +1,26 @@
+{
+  "model": "xception",
+  "train_methods": [
+    "Deepfakes"
+  ],
+  "train_compression": "c23",
+  "test_methods": [
+    "FaceSwap"
+  ],
+  "test_compression": "c23",
+  "split": "val",
+  "checkpoint": "experiments/phase1/smoke_runs/reference_xception_Deepfakes_c23/seed42/best.pt",
+  "dataset_source": "mirror",
+  "seed": 42,
+  "frame_acc": 0.5703125,
+  "frame_f1": 0.5528455284552846,
+  "frame_auc": 0.58056640625,
+  "video_acc": 0.5,
+  "video_f1": 0.5,
+  "video_auc": 0.75,
+  "n_frames": 128,
+  "n_videos": 4,
+  "video_auc_ci95_lo": 0.0,
+  "video_auc_ci95_hi": 1.0,
+  "video_auc_bootstrap_n": 880
+}
