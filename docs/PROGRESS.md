@@ -481,3 +481,50 @@ JPEG blockiness, noise residual, raw box size) on both crop sets, signed effect
 size per method vs. real, and the sign-prediction test against the observed
 below/above-chance pattern. Cheap (CPU only), and it decides whether C2 holds.
 Separately: re-request official FF++ access.
+
+## History rewrite: commit hash mapping (2026-10-14)
+
+At the user's request, git history was rewritten to remove an AI
+`Co-Authored-By` trailer from all 24 commit messages that carried it
+(`git filter-branch --msg-filter`, then force-push). Only commit messages
+changed: the file tree at HEAD, every commit's author, date and subject, and
+the commit count (30) are identical. **Every commit hash changed**, so hashes
+cited above, and the `git_commit` recorded in each `runs/*/config.json`,
+refer to the pre-rewrite history. Old history is kept locally only, under tag
+`backup/pre-trailer-strip-2026-10-14`.
+
+Hashes cited in this log: `4a180c0` -> `a1d314e`, `5801358` -> `dfe5a78`
+(the Phase 1 runs' recorded commit). Full mapping, old -> new:
+
+```
+1d94731 e7ba47a Phase 1: reference-pipeline replication -- inversion persists (GATE 1)
+5801358 dfe5a78 Add project_report.docx: formal written project report
+555bf06 425fda0 Add progress_update.pptx: supervisor update deck
+043cf0f 7b579a0 Phase 0: hygiene fixes + audit (RESEARCH_BRIEF.md)
+4a180c0 a1d314e Revert mid_review_update.pptx to scoped 9-slide version, add literature review
+d9774f2 253117e Rebuild mid_review_update.pptx: formal Dean-review deck, full results
+61fe361 039ef5b Add the concrete Kaggle dataset link, not just "search FaceForensics++"
+b0dd3ef d4a86e4 Swap presenter order: Rithvik first, Vipin second
+fcae1af c5381ed Remove end-review build scripts from the working tree too
+92dd9bc 71b2a74 Remove end-review deck/script from repo, add talking points for mid-review
+6d4074c 295e933 Split mid-review and end-review into separate decks
+621571b b5b8e9e Add timed presenter script (talking_points.pdf) for the mid-review
+0a3c60c 808bc5f Add the other 3 team members to the mid-review deck
+7ce5ee2 45298b9 Condense mid-review deck from 23 to 11 slides
+3225abb e250957 Rebuild mid-review deck to reflect completed project (23 slides)
+94de132 afb33e2 Add Grad-CAM visualization explaining why cross-manip generalization fails
+0f91f48 8c6daee Back up the two headline checkpoints via Git LFS
+ebd0ed1 1b7bf9c Add scripts/keep_awake.ps1: app-level sleep prevention for long runs
+1c8f917 f9e1e02 Add final study results: baseline, cross-manipulation, proxy-c40 tables
+9d933d9 d59f417 Add live demo webapp (FastAPI backend + single-page frontend)
+5d3fdc5 b6be1da Add scripts/run_study.sh: baseline + cross-manip + proxy-c40 experiment runner
+2e57fcd 1a7913f Add scripts/make_c40proxy.py: local c40 stand-in via re-transcoding
+560c1a6 1dadaac Add c40proxy as a recognized compression level for evaluation
+e1ff433 3f1c957 Add official FF++ train/val/test splits (also previously gitignored)
+01967e3 1efd376 Fix .gitignore accidentally excluding src/data/, add missing core modules
+ba0694a ba0694a Add box-plot outlier analysis and update mid-review slides
+56efd21 56efd21 Add mid-review status update slides
+a0eb2d2 a0eb2d2 Add Colab fallback notebook
+2dc53a3 2dc53a3 Add PROJECT_LOG.md: env setup, GPU capacity findings, dataset plan
+fa2c827 fa2c827 Import deepfake detection project (Xception vs CNN-ViT on FF++)
+```
