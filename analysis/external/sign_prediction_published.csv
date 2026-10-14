@@ -1,0 +1,3 @@
+d_from,target,cells,spearman_rho,perm_p
+current crops (mirror),Face X-ray Table 1 Xception (official FF++),12,0.735,0.042
+reference crops (mirror),Face X-ray Table 1 Xception (official FF++),12,0.735,0.042

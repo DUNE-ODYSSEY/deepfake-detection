@@ -633,3 +633,33 @@ its validator script wasn't re-run here.
 
 Phase 4 launched 2026-10-15 in visible windows (keep_awake + driver, logs
 `logs/phase4_hfaug.{out,err}`), metadata confirms `hf_aug: true` at `2d38f14`.
+
+## Literature check and an external test of the mechanism (2026-10-15)
+
+**Correction to RESEARCH_BRIEF.md section 1.** The brief says "Published
+Xception DF->FS is roughly 0.70". The published number is **0.4913**: Li et
+al., *Face X-ray for More General Face Forgery Detection*, CVPR 2020, Table 1
+(read from the arXiv:1912.13458v2 PDF), Xception trained on DF tested on FS.
+0.70 is the *reverse* cell (FS->DF, 0.7012). Same table: NT->FS 0.4798, and
+its HRNet baseline scores **0.3915** on DF->FS -- below chance on official
+data. So official-data results already show FaceSwap as the worst target, at
+or below chance; our mirror results (DF->FS 0.256) are a stronger form of a
+published pattern, not a contradiction of it. Transcribed matrix and citation:
+`analysis/external/facexray_table1_xception.csv`, `analysis/external/SOURCE.md`
+(Table 1's compression level and frame/video level are not stated in the
+paper).
+
+**External test.** hf_ratio effect sizes from our mirror crops, used as
+d_A x d_B, predict that published official-data Xception matrix with Spearman
+rho = 0.735 over 12 off-diagonal cells, the best of all 24 method relabelings
+(p = 0.042), from either crop set
+(`analysis/external/sign_prediction_published.csv`). Our current matrix and
+the published one correlate at rho = 0.797. This is the strongest answer so
+far to the mirror-vs-official concern: the mechanism predicts an independent
+lab's official-data results.
+
+**Unverified:** a search summary attributes to DF40 (Yan et al., NeurIPS 2024
+Datasets & Benchmarks, arXiv:2406.13495) below-chance results on StyleCLIP
+fakes explained by real/fake resolution mismatch ("higher resolution, higher
+probability to be real"). Could not open the paper to confirm (fetch size
+limit, then a session limit); verify before citing.
