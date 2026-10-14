@@ -613,3 +613,23 @@ is the causal test.
   runs/phase4_hfaug --results-dir results/phase4_hfaug --hf-aug --execute`.
   Success criterion (brief): below-chance cells rise with CI excluding the
   Phase 1 baseline mean, in-domain AUC drop <= 2 points.
+
+## Phase 7 (partial): figures from script outputs
+
+`analysis/make_figures.py` -> `analysis/figures/*.png|pdf` (300 dpi), every
+number read from the analysis/ CSVs:
+- **F1** `F1_transfer_matrices`: current 4x4 vs. reference 2x4 (seed mean +
+  95% CI) Xception matrices, diverging around AUC 0.5, below-chance cells
+  hatched as a non-colour cue.
+- **F3** `F3_hf_effect_sizes`: hf_ratio Cohen's d per method, both crop sets.
+- **F4** `F4_sign_prediction`: d_A x d_B vs. observed AUC, three matrices; the
+  on-figure claim (every below-chance cell pairs FS with DF or NT) is
+  asserted in code before drawing.
+- **F6** `F6_architecture_agreement`: Xception vs. CNN-ViT off-diagonal AUC.
+Not yet: F2 (preprocessing grid; Phase 2 not run), F5 (Phase 4 running), F7
+(existing `analyze/outputs/gradcam_comparison.png` can serve). Palette: the
+dataviz reference palette's validated slots 1-3; Node.js isn't installed, so
+its validator script wasn't re-run here.
+
+Phase 4 launched 2026-10-15 in visible windows (keep_awake + driver, logs
+`logs/phase4_hfaug.{out,err}`), metadata confirms `hf_aug: true` at `2d38f14`.
