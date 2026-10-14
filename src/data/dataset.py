@@ -12,8 +12,10 @@ def _list_frames(vdir: Path):
     glob both so the same dataset class serves either pipeline's output."""
     return sorted(list(vdir.glob("*.jpg")) + list(vdir.glob("*.png")))
 
+import random
+
 import torch
-from PIL import Image
+from PIL import Image, ImageFilter
 from torch.utils.data import Dataset
 from torchvision import transforms
 
@@ -23,10 +25,29 @@ IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
-def build_transforms(img_size: int, train: bool):
+class RandomBlurSharpen:
+    """Randomly blur or sharpen, independent of the label, so high-frequency
+    energy stops being a usable real/fake cue (Phase 3 found DF/NT fakes
+    blurrier and FS fakes sharper than real faces)."""
+
+    def __init__(self, p: float = 0.9):
+        self.p = p
+
+    def __call__(self, img):
+        if random.random() >= self.p:
+            return img
+        if random.random() < 0.5:
+            return img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.3, 1.5)))
+        return img.filter(ImageFilter.UnsharpMask(radius=random.uniform(1.0, 2.0),
+                                                  percent=int(random.uniform(50, 200)),
+                                                  threshold=0))
+
+
+def build_transforms(img_size: int, train: bool, hf_aug: bool = False):
     if train:
         return transforms.Compose([
             transforms.Resize((img_size, img_size)),
+            *([RandomBlurSharpen()] if hf_aug else []),
             transforms.RandomHorizontalFlip(),
             transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1),
             transforms.ToTensor(),
@@ -41,7 +62,8 @@ def build_transforms(img_size: int, train: bool):
 
 class FFPPDataset(Dataset):
     def __init__(self, root: str, splits_dir: str, split: str, compression: str,
-                 methods, img_size: int = 299, train_aug: bool = False):
+                 methods, img_size: int = 299, train_aug: bool = False,
+                 hf_aug: bool = False):
         """methods: list of manipulation names, e.g. ["Deepfakes"] or all four."""
         self.samples = []  # (path, label, video_key)
         real_ids, fake_ids = load_split_ids(splits_dir, split)
@@ -65,7 +87,7 @@ class FFPPDataset(Dataset):
         if not self.samples:
             raise RuntimeError(
                 f"No samples for split={split} comp={compression} methods={methods}")
-        self.transform = build_transforms(img_size, train_aug)
+        self.transform = build_transforms(img_size, train_aug, hf_aug)
 
     def class_weights(self):
         """Per-sample weights for WeightedRandomSampler (balances real vs fake)."""

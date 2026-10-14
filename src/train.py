@@ -89,6 +89,8 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--out", required=True)
     p.add_argument("--resume", action="store_true")
+    p.add_argument("--hf-aug", action="store_true",
+                   help="random blur/sharpen on training images (Phase 4 intervention)")
     p.add_argument("--dataset-source", default="mirror", choices=["mirror", "official"],
                    help="Provenance label written into config.json/metrics — this "
                         "project currently only has Kaggle-mirror FF++ access")
@@ -111,7 +113,8 @@ def main():
 
     img_size = model_img_size(args.model)
     train_ds = FFPPDataset(args.data_root, args.splits_dir, "train",
-                           args.compression, args.methods, img_size, train_aug=True)
+                           args.compression, args.methods, img_size, train_aug=True,
+                           hf_aug=args.hf_aug)
     val_ds = FFPPDataset(args.data_root, args.splits_dir, "val",
                          args.compression, args.methods, img_size)
     sampler = WeightedRandomSampler(train_ds.class_weights(), len(train_ds))

@@ -1,0 +1,5 @@
+method,condition,d_hf_ratio_vs_real,n_videos
+Deepfakes,no augmentation,-0.144,200
+Deepfakes,RandomBlurSharpen,0.011,200
+FaceSwap,no augmentation,0.422,200
+FaceSwap,RandomBlurSharpen,0.268,200

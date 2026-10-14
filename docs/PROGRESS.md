@@ -528,3 +528,88 @@ a0eb2d2 a0eb2d2 Add Colab fallback notebook
 2dc53a3 2dc53a3 Add PROJECT_LOG.md: env setup, GPU capacity findings, dataset plan
 fa2c827 fa2c827 Import deepfake detection project (Xception vs CNN-ViT on FF++)
 ```
+
+## Phase 3: mechanism (C2) -- steps 3.1-3.4
+
+**Status: done (Grad-CAM step 3.5 skipped; it's qualitative only).**
+2026-10-14. No training. Data provenance: **Kaggle mirror, preliminary.**
+
+### What ran
+
+- `experiments/phase3/crop_statistics.py`: 8 frames from each of the 700
+  test-split videos (real + 4 methods) in **both** crop sets (current MTCNN/JPEG
+  and reference dlib/PNG); per-video means of lap_var, hf_ratio, noise_std,
+  blockiness, color_dE, lum_diff, boundary_grad, boundary_grad_rel (face mask =
+  convex hull of dlib 68 landmarks; landmark fallback used on <=0.4% of
+  frames). Raw face-box size taken from the Phase 0 audit sample (current
+  pipeline only). Outputs `analysis/phase3/crop_stats_{current,reference}.csv`.
+- `experiments/phase3/sign_prediction.py`: design fixed in its docstring
+  before any statistic was examined. Effect sizes (Cohen's d, fakes vs. all
+  test reals, bootstrap CI; paired d vs. each fake's own target video; AUC
+  of the raw statistic), sign-prediction test against all three observed
+  matrices with an exact 24-relabeling permutation null, and a reliance check
+  on the reference models' per-video scores. Outputs
+  `analysis/phase3/effect_sizes.csv`, `sign_prediction.csv`,
+  `reliance_reference.csv`, run log `sign_prediction_run.log`.
+
+### Result: high-frequency energy flips sign between methods
+
+`hf_ratio` (share of spectral energy above 0.25 cycles/px) is the only
+statistic where FaceSwap moves opposite to Deepfakes/NeuralTextures with every
+CI excluding zero, in both crop sets:
+
+| Method vs. real | current d [95% CI] | reference d [95% CI] | paired d (cur / ref) |
+|---|---|---|---|
+| Deepfakes | -0.48 [-0.72, -0.26] | -0.36 [-0.60, -0.14] | -0.58 / -0.49 |
+| NeuralTextures | -0.39 [-0.61, -0.15] | -0.30 [-0.52, -0.08] | -0.77 / -0.62 |
+| FaceSwap | +0.37 [+0.11, +0.66] | +0.33 [+0.09, +0.58] | +0.45 / +0.49 |
+| Face2Face | -0.01 [-0.23, +0.24] | -0.02 [-0.25, +0.21] | -0.03 / -0.06 |
+
+DF and NT fakes are blurrier than real faces; FS fakes are sharper; F2F shows
+no shift. Sign prediction (predicted transfer sign = sign(d_A) x sign(d_B)):
+
+| Observed matrix | cells correct | Spearman rho (d_A*d_B vs AUC) | permutation p (rho) |
+|---|---|---|---|
+| current Xception | 8 / 9 | 0.919 | 0.042 (best of 24) |
+| current CNN-ViT | 10 / 12 | 0.919 | 0.042 (best of 24) |
+| reference Xception | 4 / 5 | 0.899 | 0.083 |
+
+The misses are the F2F<->FS cells: F2F's d is ~0, so its sign carries no
+information (the continuous score handles this; the sign call can't).
+Sharpness statistics correlated with hf_ratio (lap_var, noise_std; Spearman
+0.64-0.70) predict nearly as well but their FaceSwap effect is ~0.
+
+**Reliance (reference models, 140 real test videos):** the DF-trained model's
+fake probability rises as real faces get blurrier -- lap_var rho = -0.27
+(p = 0.001), noise_std -0.25 (p = 0.002), boundary_grad -0.29 (p < 0.001),
+all in the direction DF's training fakes moved; hf_ratio itself -0.05
+(p = 0.60). The FS-trained model shows no significant reliance on any
+high-frequency statistic (hf_ratio rho = +0.10, p = 0.25).
+
+### GATE 3 call
+
+A statistic does predict the sign pattern -- it ranks first of all 24 method
+relabelings on two of three matrices and replicates across both crop sets and
+both architectures -- so the paper stays on C2 (no fallback). Limits, stated
+plainly: the permutation test can't go below p = 1/24, nine statistics were
+tested (not significant after a Bonferroni correction), and the high-frequency
+statistics are correlated, so this is a strong, specific candidate mechanism,
+not proof. Reliance evidence is clear for the DF-trained model only. Phase 4
+is the causal test.
+
+### Phase 4 set-up (prepared, not yet run)
+
+- `RandomBlurSharpen` in `src/data/dataset.py` (p = 0.9; Gaussian blur radius
+  0.3-1.5 or unsharp mask radius 1-2, 50-200%), behind `src/train.py
+  --hf-aug` and the driver's `--hf-aug`; label-independent, train-time only.
+- `experiments/phase4/check_hf_aug.py` (`analysis/phase4/hf_aug_check.csv`,
+  200 train videos/class, one crop each at 299 px): hf_ratio d vs. real goes
+  DF -0.14 -> 0.01 and FS +0.42 -> +0.27. **Prediction recorded before
+  training:** DF->FS should recover more than FS->NT, because the augmentation
+  removes the DF cue but only weakens the FS cue.
+- Launch (6 runs + 24 evals, est. ~5 h, needs keep_awake):
+  `python -m experiments.phase1.run_phase1_matrix --data-root
+  C:/ffpp_data/ffpp_faces_ref --splits-dir splits --runs-root
+  runs/phase4_hfaug --results-dir results/phase4_hfaug --hf-aug --execute`.
+  Success criterion (brief): below-chance cells rise with CI excluding the
+  Phase 1 baseline mean, in-domain AUC drop <= 2 points.

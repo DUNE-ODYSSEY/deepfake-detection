@@ -1,0 +1,63 @@
+method                         DF   F2F    FS    NT
+pipeline  stat                                     
+current   blockiness         0.01 -0.12 -0.08 -0.10
+          boundary_grad     -0.15 -0.17 -0.06 -0.17
+          boundary_grad_rel  0.54  0.09  0.13  0.07
+          box_area_frac     -0.47 -0.28 -0.43 -0.23
+          color_dE          -0.10 -0.01 -0.01  0.04
+          hf_ratio          -0.48 -0.01  0.37 -0.39
+          lap_var           -0.18 -0.04  0.02 -0.38
+          lum_diff          -0.05  0.00 -0.00  0.03
+          noise_std         -0.24 -0.04  0.07 -0.44
+reference blockiness         0.10  0.19 -0.05  0.05
+          boundary_grad     -0.16 -0.19 -0.07 -0.15
+          boundary_grad_rel  0.49  0.04  0.12  0.05
+          color_dE          -0.09 -0.01 -0.02  0.05
+          hf_ratio          -0.36 -0.02  0.33 -0.30
+          lap_var           -0.26 -0.04  0.01 -0.38
+          lum_diff          -0.05  0.00 -0.02  0.04
+          noise_std         -0.33 -0.05  0.07 -0.40
+            matrix              stat  cells_scored  cells_correct  accuracy  perm_p_accuracy  spearman_rho  perm_p_rho          d_signs
+   current_cnn_vit          hf_ratio            12             10     0.833             0.25         0.919       0.042 DF- F2F- FS+ NT-
+   current_cnn_vit           lap_var            12             10     0.833             0.25         0.777       0.083 DF- F2F- FS+ NT-
+   current_cnn_vit         noise_std            12             10     0.833             0.25         0.777       0.083 DF- F2F- FS+ NT-
+   current_cnn_vit     boundary_grad            12              8     0.667             1.00         0.580       0.167 DF- F2F- FS- NT-
+   current_cnn_vit boundary_grad_rel            12              8     0.667             1.00         0.085       0.458 DF+ F2F+ FS+ NT+
+   current_cnn_vit     box_area_frac            12              8     0.667             1.00        -0.028       0.458 DF- F2F- FS- NT-
+   current_cnn_vit          color_dE            12              6     0.500             0.75        -0.368       0.750 DF- F2F- FS- NT+
+   current_cnn_vit        blockiness            12              6     0.500             0.75        -0.438       0.875 DF+ F2F- FS- NT-
+   current_cnn_vit          lum_diff            12              4     0.333             1.00        -0.594       0.875 DF- F2F+ FS- NT+
+  current_xception          hf_ratio             9              8     0.889             0.25         0.919       0.042 DF- F2F- FS+ NT-
+  current_xception           lap_var             9              8     0.889             0.25         0.820       0.083 DF- F2F- FS+ NT-
+  current_xception         noise_std             9              8     0.889             0.25         0.820       0.083 DF- F2F- FS+ NT-
+  current_xception     boundary_grad             9              6     0.667             1.00         0.664       0.167 DF- F2F- FS- NT-
+  current_xception boundary_grad_rel             9              6     0.667             1.00         0.099       0.458 DF+ F2F+ FS+ NT+
+  current_xception     box_area_frac             9              6     0.667             1.00        -0.028       0.458 DF- F2F- FS- NT-
+  current_xception          color_dE             9              5     0.556             0.50        -0.283       0.750 DF- F2F- FS- NT+
+  current_xception        blockiness             9              3     0.333             0.75        -0.438       0.875 DF+ F2F- FS- NT-
+  current_xception          lum_diff             9              3     0.333             1.00        -0.481       0.875 DF- F2F+ FS- NT+
+reference_xception          hf_ratio             5              4     0.800             0.25         0.899       0.083 DF- F2F- FS+ NT-
+reference_xception           lap_var             5              4     0.800             0.25         0.899       0.083 DF- F2F- FS+ NT-
+reference_xception         noise_std             5              4     0.800             0.25         0.899       0.083 DF- F2F- FS+ NT-
+reference_xception     boundary_grad             5              3     0.600             1.00         0.841       0.083 DF- F2F- FS- NT-
+reference_xception        blockiness             5              4     0.800             0.25         0.493       0.250 DF+ F2F+ FS- NT+
+reference_xception boundary_grad_rel             5              3     0.600             1.00        -0.261       0.750 DF+ F2F+ FS+ NT+
+reference_xception          color_dE             5              3     0.600             0.50        -0.551       0.875 DF- F2F- FS- NT+
+reference_xception          lum_diff             5              1     0.200             1.00        -0.609       0.875 DF- F2F+ FS- NT+
+train              stat  n_real_videos  rho_prob_vs_stat_on_reals  p_value  d_train  sign_matches_d_train
+   DF           lap_var            140                     -0.274    0.001   -0.256                  True
+   DF          hf_ratio            140                     -0.045    0.597   -0.362                  True
+   DF         noise_std            140                     -0.254    0.002   -0.328                  True
+   DF        blockiness            140                     -0.194    0.022    0.096                 False
+   DF          color_dE            140                     -0.124    0.145   -0.087                  True
+   DF          lum_diff            140                     -0.107    0.208   -0.053                  True
+   DF     boundary_grad            140                     -0.290    0.000   -0.158                  True
+   DF boundary_grad_rel            140                     -0.109    0.199    0.487                 False
+   FS           lap_var            140                      0.009    0.919    0.015                  True
+   FS          hf_ratio            140                      0.097    0.254    0.330                  True
+   FS         noise_std            140                      0.022    0.800    0.066                  True
+   FS        blockiness            140                     -0.247    0.003   -0.053                  True
+   FS          color_dE            140                      0.027    0.748   -0.018                 False
+   FS          lum_diff            140                     -0.020    0.816   -0.015                  True
+   FS     boundary_grad            140                     -0.165    0.051   -0.066                  True
+   FS boundary_grad_rel            140                     -0.070    0.414    0.121                 False

@@ -47,7 +47,7 @@ def train_cmd(args, train_method: str, seed: int, run_dir: Path):
             "--epochs", str(args.epochs), "--batch-size", str(args.batch_size),
             "--patience", str(args.patience), "--seed", str(seed),
             "--dataset-source", args.dataset_source,
-            "--out", str(run_dir), "--resume"]
+            "--out", str(run_dir), "--resume", *(["--hf-aug"] if args.hf_aug else [])]
 
 
 def eval_cmd(args, run_dir: Path, test_method: str, out_json: Path):
@@ -78,6 +78,9 @@ def main():
     p.add_argument("--patience", type=int, default=4)
     p.add_argument("--dataset-source", default="mirror", choices=["mirror", "official"])
     p.add_argument("--n-resamples", type=int, default=1000)
+    p.add_argument("--hf-aug", action="store_true",
+                   help="train with random blur/sharpen (Phase 4 intervention); use "
+                        "with a separate --runs-root/--results-dir")
     p.add_argument("--execute", action="store_true",
                    help="Actually run the commands. Without this flag, only "
                         "prints the plan (dry run). Requires an explicit "
