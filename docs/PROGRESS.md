@@ -663,3 +663,36 @@ Datasets & Benchmarks, arXiv:2406.13495) below-chance results on StyleCLIP
 fakes explained by real/fake resolution mismatch ("higher resolution, higher
 probability to be real"). Could not open the paper to confirm (fetch size
 limit, then a session limit); verify before citing.
+
+## Phase 4: intervention (C3) -- done
+
+**Status: done** 2026-10-19 03:39 IST. 6 runs (DF/FS x 3 seeds, Xception,
+reference crops, `--hf-aug`, patience 4 as in Phase 1), 24 evals. Mirror data,
+preliminary. Interrupted three times (laptop sleep/shutdown 10-15, a hang in
+validation and a manual shutdown 10-18, a deliberate thermal pause 10-18/19);
+every resume continued from the last finished epoch.
+
+`analysis/phase4_delta.py` -> `analysis/phase4/delta_vs_phase1.csv`, figure
+F5. Paired change vs. Phase 1 over the same 280 test videos (1000 bootstrap
+resamples, seed-mean AUC under both conditions):
+
+| Cell | Phase 1 | Phase 4 [95% CI] | change [95% CI] |
+|---|---|---|---|
+| DF->FS | 0.258 | 0.356 [0.301, 0.410] | +0.098 [+0.070, +0.129] |
+| FS->NT | 0.428 | 0.521 [0.462, 0.582] | +0.093 [+0.059, +0.129] |
+| FS->DF | 0.469 | 0.574 [0.511, 0.633] | +0.105 [+0.071, +0.136] |
+| DF->F2F | 0.694 | 0.734 [0.685, 0.786] | +0.040 [+0.012, +0.070] |
+| FS->F2F | 0.678 | 0.630 [0.573, 0.685] | -0.048 [-0.081, -0.016] |
+| DF->NT | 0.759 | 0.745 [0.696, 0.794] | -0.014 [-0.041, +0.014] |
+| DF->DF / FS->FS | 1.000 | 1.000 | ~0 |
+
+Brief's success criterion (below-chance cells rise with CI excluding the
+baseline mean; in-domain drop <= 0.02): **met for both below-chance cells**.
+FS->NT is no longer below chance; **DF->FS still is** (0.356). The
+pre-registered directional prediction (DF->FS recovers more than FS->NT)
+**failed** -- they recovered equally. Cost: FS->F2F drops 0.048. Reading:
+high-frequency energy is a causal but partial contributor.
+
+Also fixed during this phase: `src/train.py` validation now loads in-process
+and training workers persist (per-epoch worker respawn ran the 16 GB laptop
+out of memory), and the driver retries failed runs.

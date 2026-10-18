@@ -102,7 +102,7 @@ def main():
                     xerr=[off[f"{pref}_auc"] - off[f"{pref}_ci_lo"], off[f"{pref}_ci_hi"] - off[f"{pref}_auc"]],
                     fmt="o", color=col, ms=5, elinewidth=1.4, capsize=0, label=lab)
     ax.axvline(0.5, color=AXIS, linewidth=1)
-    ax.text(0.5, 0.01, " chance", transform=ax.get_xaxis_transform(), ha="left", va="bottom",
+    ax.text(0.5, 0.99, " chance", transform=ax.get_xaxis_transform(), ha="left", va="top",
             fontsize=6.5, color=MUTED)
     ax.set_yticks(y, [f"{a}→{b}" for a, b in zip(off["train"], off["test"])])
     ax.tick_params(axis="y", length=0, labelcolor=INK2)

@@ -16,7 +16,13 @@ macros = {}
 
 def put(name, value, fmt="{:.2f}"):
     assert name.isalpha(), name
-    macros[name] = fmt.format(value) if isinstance(value, (int, float)) else str(value)
+    if isinstance(value, (int, float)):
+        text = fmt.format(value)
+        if text.lstrip("+-").strip("0.") == "":
+            text = fmt.replace("+", "").format(0.0)
+        macros[name] = text
+    else:
+        macros[name] = str(value)
 
 
 def ci(lo, hi, fmt="{:.2f}"):

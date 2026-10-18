@@ -238,6 +238,19 @@ but only weakens the \FS\ one, we predicted beforehand that \tr{\DF}{\FS}
 would recover more than \tr{\FS}{\NT}. Table~\ref{tab:aug} gives the result,
 with paired bootstrap CIs on the change over the same test videos.
 
+Every cell that pairs \FS\ with \DF\ or \NT\ rises by about 0.1 AUC
+(\tr{\DF}{\FS} \augdeltadffs~\augdeltadffsci, \tr{\FS}{\NT}
+\augdeltafsnt~\augdeltafsntci, \tr{\FS}{\DF} \augdeltafsdf~\augdeltafsdfci)
+with no in-domain cost. Both below-chance cells meet the success criterion we
+set in advance (CI excluding the reference mean): \tr{\FS}{\NT} is no longer
+below chance, but \tr{\DF}{\FS} remains inverted at \augaucdffs~\augaucdffsci.
+Our directional prediction failed: the two cells recovered by the same
+amount. The augmentation is not free either: \tr{\FS}{\FF} drops by
+\augdeltafsff~\augdeltafsffci, suggesting that a \FS\ detector denied the
+sharpness cue falls back on cues that transfer less well to \FF. We read
+this as high-frequency energy being a substantial, causal but partial
+contributor to the inversion.
+
 \begin{table}[t]
 \centering
 \caption{Blur/sharpen randomization (3 seeds) versus the reference
@@ -251,6 +264,7 @@ Cell & Reference & Augmented & $\Delta$ \\
 \tr{\FS}{\NT} & \reffsnt & \augaucfsnt & \augdeltafsnt~\augdeltafsntci \\
 \tr{\FS}{\DF} & \reffsdf & \augaucfsdf & \augdeltafsdf~\augdeltafsdfci \\
 \tr{\DF}{\FF} & \refdfff & \augaucdfff & \augdeltadfff \\
+\tr{\FS}{\FF} & \reffsff & \augaucfsff & \augdeltafsff~\augdeltafsffci \\
 \tr{\DF}{\DF} & \refdfdf & \augaucdfdf & \augdeltadfdf \\
 \tr{\FS}{\FS} & \reffsfs & \augaucfsfs & \augdeltafsfs \\
 \bottomrule
