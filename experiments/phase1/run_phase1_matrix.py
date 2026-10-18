@@ -66,7 +66,7 @@ def main():
     p.add_argument("--splits-dir", default="splits")
     p.add_argument("--runs-root", default="runs")
     p.add_argument("--results-dir", default="results/reference")
-    p.add_argument("--model", default="xception", choices=["xception", "cnn_vit"],
+    p.add_argument("--model", default="xception", choices=["xception", "cnn_vit", "resnet50", "efficientnet_b4"],
                    help="Phase 1 trains Xception only per the brief; cnn_vit "
                         "left available for a future architecture-independence pass")
     p.add_argument("--train-methods", nargs="+", default=["Deepfakes", "FaceSwap"])
@@ -133,8 +133,14 @@ def main():
         if cmd is None:
             print(f"skip: {note}")
             continue
-        print(f"running: {note}")
-        subprocess.run(cmd, cwd=REPO_ROOT, check=True)
+        print(f"running: {note}", flush=True)
+        for attempt in range(1, 4):
+            rc = subprocess.run(cmd, cwd=REPO_ROOT).returncode
+            if rc == 0:
+                break
+            print(f"FAILED (rc={rc}) attempt {attempt}/3: {note}", flush=True)
+        else:
+            print(f"GIVING UP: {note}", flush=True)
 
 
 if __name__ == "__main__":

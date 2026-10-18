@@ -14,3 +14,10 @@ results/
 
 # FF++-derived face crops: never redistribute (RESEARCH_BRIEF.md ground rule 5)
 experiments/phase1/smoke_test_samples/
+
+# LaTeX build products
+paper/*.log
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.out

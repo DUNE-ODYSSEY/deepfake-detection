@@ -77,7 +77,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--data-root", required=True)
     p.add_argument("--splits-dir", default="splits")
-    p.add_argument("--model", required=True, choices=["xception", "cnn_vit"])
+    p.add_argument("--model", required=True, choices=["xception", "cnn_vit", "resnet50", "efficientnet_b4"])
     p.add_argument("--methods", nargs="+", required=True)
     p.add_argument("--compression", default="c23", choices=["c0", "c23", "c40"])
     p.add_argument("--epochs", type=int, default=15)
@@ -118,11 +118,14 @@ def main():
     val_ds = FFPPDataset(args.data_root, args.splits_dir, "val",
                          args.compression, args.methods, img_size)
     sampler = WeightedRandomSampler(train_ds.class_weights(), len(train_ds))
+    # Workers persist across epochs and validation loads in-process: on this
+    # 16 GB Windows laptop, re-spawning worker processes for every validation
+    # pass ran out of memory and killed or hung the run (2026-10-15, 10-18).
     train_dl = DataLoader(train_ds, args.batch_size, sampler=sampler,
                           num_workers=args.num_workers, pin_memory=True,
-                          drop_last=True)
-    val_dl = DataLoader(val_ds, args.batch_size, num_workers=args.num_workers,
-                        pin_memory=True)
+                          drop_last=True, persistent_workers=args.num_workers > 0,
+                          timeout=900 if args.num_workers > 0 else 0)
+    val_dl = DataLoader(val_ds, args.batch_size, num_workers=0, pin_memory=True)
     print(f"train: {len(train_ds)} frames | val: {len(val_ds)} frames | {device}")
 
     model = create_model(args.model).to(device)
