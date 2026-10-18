@@ -1,0 +1,13 @@
+runs,model,train,dff_fake,n_seeds,auc,ci95_lo,ci95_hi,observed_call,d_train_ffpp,d_test_dff,predicted_sign,prediction_correct
+phase4_hfaug,xception,DF,inpainting,3,0.4739,0.4435,0.4988,below chance,-0.362,-0.261,transfers,False
+phase4_hfaug,xception,DF,insight,3,0.6163,0.5897,0.6432,above chance,-0.362,-0.517,transfers,True
+phase4_hfaug,xception,DF,text2img,3,0.3124,0.2901,0.3351,below chance,-0.362,-0.396,transfers,False
+phase4_hfaug,xception,FS,inpainting,3,0.5642,0.5395,0.5883,above chance,0.33,-0.261,inverted,False
+phase4_hfaug,xception,FS,insight,3,0.5445,0.5183,0.5696,above chance,0.33,-0.517,inverted,False
+phase4_hfaug,xception,FS,text2img,3,0.4142,0.3929,0.439,below chance,0.33,-0.396,inverted,True
+runs,xception,DF,inpainting,3,0.4628,0.4362,0.4892,below chance,-0.362,-0.261,transfers,False
+runs,xception,DF,insight,3,0.6539,0.6297,0.6811,above chance,-0.362,-0.517,transfers,True
+runs,xception,DF,text2img,3,0.3231,0.3022,0.3445,below chance,-0.362,-0.396,transfers,False
+runs,xception,FS,inpainting,3,0.5137,0.4869,0.5415,at chance,0.33,-0.261,inverted,
+runs,xception,FS,insight,3,0.4909,0.4637,0.5188,at chance,0.33,-0.517,inverted,
+runs,xception,FS,text2img,3,0.399,0.3764,0.423,below chance,0.33,-0.396,inverted,True

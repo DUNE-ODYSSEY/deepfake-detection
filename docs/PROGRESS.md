@@ -696,3 +696,32 @@ high-frequency energy is a causal but partial contributor.
 Also fixed during this phase: `src/train.py` validation now loads in-process
 and training workers persist (per-epoch worker respawn ran the 16 GB laptop
 out of memory), and the driver retries failed runs.
+
+## Phase 6: external validity (DeepFakeFace) -- done
+
+**Status: done** 2026-10-19. No retraining. DeepFakeFace (OpenRL/DeepFakeFace,
+OpenRAIL; IMDB-WIKI reals, research use only, not redistributed), 5.07 GB,
+1000 images sampled per class (seed 0), reference-pipeline crops
+(`experiments/phase6/prepare_dff.py`); dlib found a face in 818 real, 640
+inpainting, 656 InsightFace, 901 text-to-image images (class-dependent
+detection rate -- a selection-bias caveat). `experiments/phase6/eval_dff.py`
+scored the Phase 1 and Phase 4 Xception checkpoints on CPU ->
+`analysis/phase6/dff_scores.csv`, `dff_effect_sizes.csv`, `dff_transfer.csv`.
+
+hf_ratio d vs. real: inpainting -0.26, InsightFace -0.52, text2img -0.40 (all
+blurrier), so the sign test predicts DF-trained transfers and FS-trained
+inverts on all three. Phase 1 models (3 seeds, AUC [95% CI]):
+
+| | DF-trained | FS-trained |
+|---|---|---|
+| SD inpainting | 0.463 [0.436, 0.489] | 0.514 [0.487, 0.542] |
+| InsightFace | 0.654 [0.630, 0.681] | 0.491 [0.464, 0.519] |
+| SD text2img | 0.323 [0.302, 0.345] | 0.399 [0.376, 0.423] |
+
+**Prediction correct on 2/4 decided cells -- no better than chance.** SD
+text2img is below chance for every detector regardless of training-cue sign.
+Conclusion: the high-frequency account is within-FF++ (it predicts our and the
+published FF++ matrices) and does not carry to another dataset, where other
+differences dominate (hypothesis, untested: IMDB-WIKI still photos are out of
+distribution for detectors trained on YouTube frames). Phase 4 (hf-aug) models
+behave similarly (rows with runs=phase4_hfaug in dff_transfer.csv).

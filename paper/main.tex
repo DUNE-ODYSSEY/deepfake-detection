@@ -45,7 +45,8 @@ $\rho=\sprhoxc$, best of all 24 method relabelings) and also predicts an
 independently published, official-data matrix ($\rho=\pubrho$). Randomizing
 sharpness during training raises the worst cell by \augdeltadffs\ AUC without
 an in-domain cost, but does not remove the inversion, indicating that
-high-frequency energy is a substantial but partial cause.
+high-frequency energy is a substantial but partial cause. The account is
+specific to FF++: on DeepFakeFace the same sign test fails.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -309,8 +310,37 @@ EfficientNet-B4 & \pending & \pending & \pending \\
 \subsection{Out-of-dataset check}
 On DeepFakeFace \cite{song2023dff} (IMDB-WIKI reals; SD inpainting,
 InsightFace swaps and SD text-to-image fakes), we apply the same crops, measure
-$d$ per generator, and evaluate the FF++-trained detectors without retraining.
-\pending
+$d$ per generator, and evaluate the FF++-trained detectors without retraining
+(1000 images sampled per class; dlib found a face in 64--90\% of them).
+All three generators are blurrier than DeepFakeFace's real images
+($d=\dffdinp$, \dffdins, \dffdtxt), so the sign test predicts that
+\DF-trained detectors transfer and \FS-trained detectors invert on all three.
+It does not hold up (Table~\ref{tab:dff}): the prediction is right on
+\dffcorrect\ cells whose CI excludes chance, no better than a coin. SD
+text-to-image fakes score below chance for \emph{every} detector, whatever the
+sign of its training cue. Across datasets, then, something other than
+high-frequency energy dominates; one candidate is that DeepFakeFace's real
+images (still photographs from IMDB-WIKI) are themselves out of distribution
+for detectors trained on YouTube video frames. The high-frequency account is
+a within-FF++ explanation.
+
+\begin{table}[t]
+\centering
+\caption{FF++-trained Xception (reference pipeline, 3 seeds) on DeepFakeFace.
+AUC with 95\% CI; real class: IMDB-WIKI.}
+\label{tab:dff}
+\begin{tabular}{lcc}
+\toprule
+Generator & \DF-trained & \FS-trained \\
+\midrule
+SD inpainting & \dffaucdfinp~\dffaucdfinpci & \dffaucfsinp~\dffaucfsinpci \\
+InsightFace & \dffaucdfins~\dffaucdfinsci & \dffaucfsins~\dffaucfsinsci \\
+SD text-to-image & \dffaucdftxt~\dffaucdftxtci & \dffaucfstxt~\dffaucfstxtci \\
+\midrule
+Predicted & transfers & inverts \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Limitations}
 \label{sec:limits}
@@ -324,13 +354,17 @@ matrices are single-seed point estimates. The architecture comparison in the
 original pipeline is confounded by pretraining and input size (the hybrid is
 trained from scratch at 224\,px). Experiments ran on one 6\,GB laptop GPU,
 which bounded the preprocessing grid to factors derivable from existing
-crops; detector and alignment were varied only jointly.
+crops; detector and alignment were varied only jointly. On DeepFakeFace,
+face detection succeeded at different rates per class (64--90\%), which may
+bias which images enter the evaluation.
 
 \section{Conclusion}
 Below-chance cross-manipulation scores on FF++ are not noise or a
 preprocessing artifact: they follow the sign of a measurable high-frequency
 shift that differs between manipulation methods, a shift that predicts both
-our and published transfer matrices. Detectors should be checked for such
+our and published transfer matrices. The shift does not predict transfer to
+another dataset, where other differences dominate, so the account should be
+read as within-benchmark. Detectors should be checked for such
 signed shortcut cues before their cross-method scores are interpreted, and
 augmentation that randomizes the cue is a cheap partial fix.
 
