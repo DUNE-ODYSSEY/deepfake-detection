@@ -747,3 +747,26 @@ Both backbones reproduce Xception's below/at/above-chance call in **8/8**
 cells. C4 supported: the inversion is set by the training manipulation, not
 the architecture (among ImageNet-pretrained CNNs at matched input size; the
 original from-scratch CNN-ViT agreed at r = 0.94).
+
+## Phase 2: preprocessing grid -- predictions recorded before results
+
+Recorded 2026-10-19 ~10:45, while the first Phase 2 model (JPEG q75, DF seed 1)
+was still training; no Phase 2 evaluation existed yet.
+`experiments/phase2/hf_by_variant.py` -> `analysis/phase2/hf_d_by_variant.csv`
+(hf_ratio Cohen's d, method vs. real, 700 test videos, 8 frames each):
+
+| Variant | DF | F2F | FS | NT |
+|---|---|---|---|---|
+| reference | -0.362 | -0.020 | +0.330 | -0.302 |
+| jpeg95 | -0.359 | -0.015 | +0.334 | -0.299 |
+| frames10 | -0.365 | -0.009 | +0.343 | -0.297 |
+| jpeg75 | -0.401 | -0.043 | +0.302 | -0.313 |
+| margin10 | -0.228 | -0.008 | +0.270 | -0.190 |
+
+**Predictions (from the sign/magnitude of d_A x d_B):**
+1. jpeg95, frames10, jpeg75: same signs and similar magnitudes as reference ->
+   DF->FS and FS->NT stay below chance, close to the reference values.
+2. margin10: |d_DF x d_FS| roughly halves (0.119 -> 0.062) and |d_FS x d_NT|
+   likewise (0.100 -> 0.051) -> the inversion should weaken: DF->FS and FS->NT
+   AUC higher than reference (closer to 0.5). Sign unchanged, so not predicted
+   to flip above chance.
