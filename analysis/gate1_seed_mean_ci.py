@@ -20,7 +20,7 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score
 
 SHORT = {"Deepfakes": "DF", "Face2Face": "F2F", "FaceSwap": "FS", "NeuralTextures": "NT"}
-NAME_RE = re.compile(r"^(?P<model>[a-zA-Z_]+)_(?P<train>[A-Za-z0-9]+)_to_(?P<test>[A-Za-z0-9]+)_"
+NAME_RE = re.compile(r"^(?P<model>[a-zA-Z0-9_]+?)_(?P<train>Deepfakes|Face2Face|FaceSwap|NeuralTextures)_to_(?P<test>[A-Za-z0-9]+)_"
                      r"(?P<comp>[a-zA-Z0-9]+)_seed(?P<seed>\d+)\.video_scores\.csv$")
 
 

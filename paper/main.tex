@@ -283,7 +283,11 @@ Cell & Reference & Augmented & $\Delta$ \\
 If the inversion comes from a property of the training fakes rather than of
 the network, other backbones should show it too. Table~\ref{tab:arch} repeats
 the reference-pipeline experiment with ImageNet-pretrained ResNet-50 and
-EfficientNet-B4 at the same 299\,px input as Xception.
+EfficientNet-B4 at the same 299\,px input as Xception (EfficientNet-B4 at
+batch 16, the largest that fits in 6\,GB). ResNet-50 reproduces Xception's
+below/at/above-chance call in \archrnsamecalls\ cells, including
+\tr{\DF}{\FS} at \archrndffs~\archrndffsci\ and \tr{\FS}{\NT} at
+\archrnfsnt~\archrnfsntci; EfficientNet-B4 matches in \archensamecalls.
 
 \begin{figure}[t]
 \centering
@@ -301,8 +305,8 @@ EfficientNet-B4 at the same 299\,px input as Xception.
 Backbone & \tr{\DF}{\FS} & \tr{\FS}{\NT} & \tr{\DF}{\DF} \\
 \midrule
 Xception & \refdffs & \reffsnt & \refdfdf \\
-ResNet-50 & \pending & \pending & \pending \\
-EfficientNet-B4 & \pending & \pending & \pending \\
+ResNet-50 & \archrndffs & \archrnfsnt & \archrndfdf \\
+EfficientNet-B4 & \archendffs & \archenfsnt & \archendfdf \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -1,0 +1,9 @@
+model,train,test,n_seeds,n_videos,seed_mean_auc,ci95_lo,ci95_hi,seed_sd,per_seed_auc,reference_call,current_pipeline_auc,data_source
+resnet50,DF,DF,2,280,0.9996,0.9988,1.0,0.0001,0.9995;0.9997,above chance,0.9999,mirror (preliminary)
+resnet50,DF,F2F,2,280,0.6636,0.6057,0.7209,0.0239,0.6805;0.6467,above chance,0.7421,mirror (preliminary)
+resnet50,DF,FS,2,280,0.291,0.2397,0.3461,0.0381,0.2641;0.3180,below chance,0.2562,mirror (preliminary)
+resnet50,DF,NT,2,280,0.7447,0.689,0.7975,0.0123,0.7534;0.7361,above chance,0.8123,mirror (preliminary)
+resnet50,FS,DF,2,280,0.4497,0.3864,0.5148,0.0453,0.4817;0.4176,at chance,0.5013,mirror (preliminary)
+resnet50,FS,F2F,2,280,0.6835,0.6236,0.7391,0.0261,0.6650;0.7019,above chance,0.7003,mirror (preliminary)
+resnet50,FS,FS,2,280,0.9998,0.9993,1.0,0.0,0.9998;0.9998,above chance,1.0,mirror (preliminary)
+resnet50,FS,NT,2,280,0.416,0.3542,0.4803,0.0396,0.4440;0.3880,below chance,0.3953,mirror (preliminary)
