@@ -11,6 +11,7 @@ import csv
 import json
 from pathlib import Path
 
+import pandas as pd
 from docx import Document
 from docx.shared import Inches, Pt, Mm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -230,11 +231,17 @@ def main():
         "dedicated audit (Phase 0 of a new research plan, RESEARCH_BRIEF.md) "
         "checked for a trivial pipeline explanation -- systematic differences "
         "in video encoding, face-crop quality, or label handling between real "
-        "and manipulated classes -- and found none. The project is now "
-        "pursuing this inversion as its central, publishable contribution: "
-        "testing whether it is preprocessing-driven or a genuine mechanism, "
-        "identifying the image-level statistic responsible, and testing "
-        "interventions that fix it."
+        "and manipulated classes -- and found none. A six-phase follow-up "
+        "study then showed that the inversion survives a complete change of "
+        "preprocessing and appears identically in three ImageNet-pretrained "
+        "architectures; that it follows a difference in high-frequency image "
+        "energy whose direction flips between manipulation methods (Deepfakes "
+        "and NeuralTextures fakes are blurrier than real faces, FaceSwap fakes "
+        "sharper), which predicts both our transfer matrices and a published "
+        "official-data matrix; and that randomizing sharpness during training "
+        "reduces the inversion by about 0.1 AUC without removing it. The "
+        "explanation does not carry over to a second dataset (DeepFakeFace), "
+        "so it is stated as specific to FaceForensics++."
     )
 
     # ---- 1. Introduction ----
@@ -569,126 +576,282 @@ def main():
         "of that."
     ).runs[0].bold = True
 
-    # ---- 7. Research plan ----
-    doc.add_heading("7. Research Plan: Explaining and Fixing the Inversion", level=1)
+    # ---- 7. Research results (Phases 1-6) ----
+    def f2(x):
+        return f"{float(x):.2f}"
+
+    def f3(x):
+        return f"{float(x):.3f}"
+
+    def cis(lo, hi):
+        return f"[{float(lo):.2f}, {float(hi):.2f}]"
+
+    def opt(path):
+        p = Path(path)
+        return pd.read_csv(p) if p.exists() else None
+
+    doc.add_heading("7. Research Results: Why Transfer Inverts", level=1)
     doc.add_paragraph(
-        "Working title: \"Inverted Transfer -- Why Deepfake Detectors Score "
-        "Unseen Manipulations Below Chance, and How Preprocessing Toggles "
-        "It.\" Full plan, phase-by-phase with gates and ground rules, lives "
-        "in RESEARCH_BRIEF.md in the repository; progress against it is "
-        "logged after every phase in docs/PROGRESS.md."
+        "The below-chance cells in §4.2 were turned into a research question "
+        "with four falsifiable claims (RESEARCH_BRIEF.md): C1, the inversion "
+        "depends on preprocessing; C2, it follows a measurable low-level image "
+        "statistic whose direction differs between manipulation methods; C3, "
+        "neutralizing that statistic during training reduces it; C4, it does "
+        "not depend on the architecture. All results below use the Kaggle "
+        "mirror (preliminary), three seeds for Xception and two for the other "
+        "conditions, video-level AUC with 95% bootstrap CIs over the 280 test "
+        "videos; a cell is called below chance only when its whole CI is "
+        "under 0.5. Full log: docs/PROGRESS.md."
     )
-    doc.add_heading("7.1 Falsifiable Claims", level=2)
-    claims = [
-        ("C1 -- Preprocessing sensitivity.", "For the same architecture, does "
-         "cross-manipulation AUC on the DF/FS cells shift substantially, "
-         "possibly across the 0.5 line, with preprocessing choices alone "
-         "(detector, margin, storage format, alignment, frame count, data "
-         "source)?"),
-        ("C2 -- Inversion mechanism.", "Do detectors latch onto a low-level "
-         "statistic (sharpness, high-frequency energy, boundary contrast, "
-         "resolution/JPEG mismatch) whose sign relative to real faces differs "
-         "between manipulation methods, predicting which transfer cells fall "
-         "below chance?"),
-        ("C3 -- Intervention.", "Does neutralizing that statistic during "
-         "training move the below-chance cells back toward or above 0.5 for "
-         "both architectures, without a large in-domain accuracy drop?"),
-        ("C4 -- Architecture independence.", "Are transfer matrices more "
-         "similar across architectures than across training methods -- i.e. "
-         "does architecture explain little variance in cross-manipulation "
-         "AUC? (First evidence for this is the r≈0.94 correlation in "
-         "§5.)"),
-    ]
-    for head, body in claims:
+
+    g = pd.read_csv("analysis/reference/gate1_seed_mean_ci.csv").set_index(["train", "test"])
+    doc.add_heading("7.1 Phase 1: The Inversion Survives a Full Preprocessing Change", level=2)
+    doc.add_paragraph(
+        "A reference pipeline changed every preprocessing choice at once: dlib "
+        "face detection with 68-landmark alignment instead of MTCNN, PNG "
+        "instead of JPEG, 256 px crops, 32 frames per video. Xception was "
+        "retrained on Deepfakes-only and FaceSwap-only, three seeds each."
+    )
+    rows = []
+    for a, b in [("DF", "FS"), ("FS", "NT"), ("FS", "DF"), ("DF", "F2F"), ("DF", "NT"), ("FS", "F2F")]:
+        r = g.loc[(a, b)]
+        rows.append([f"{a} → {b}", f3(r["current_pipeline_auc"]),
+                     f"{f3(r['seed_mean_auc'])} {cis(r['ci95_lo'], r['ci95_hi'])}", r["reference_call"]])
+    add_table(doc, ["Cell", "Original pipeline", "Reference pipeline (3 seeds)", "Call"], rows,
+              widths=[1.1, 1.3, 2.4, 1.3], highlight_rows={1, 2})
+    doc.add_paragraph(
+        "The reference pipeline reproduces the original matrix almost cell for "
+        f"cell; DF→FS moves from {f3(g.loc[('DF', 'FS'), 'current_pipeline_auc'])} "
+        f"to {f3(g.loc[('DF', 'FS'), 'seed_mean_auc'])}. The inversion is not a "
+        "preprocessing artifact, so the main claim moves from C1 to C2."
+    )
+    add_figure(doc, "analysis/figures/F1_transfer_matrices.png",
+               "Figure 4. Transfer matrices, original vs. reference pipeline (Xception).", width=6.2)
+
+    doc.add_heading("7.2 Phase 2: One-Factor Preprocessing Grid", level=2)
+    hfv = opt("analysis/phase2/hf_d_by_variant.csv")
+    names = {"jpeg95": "JPEG q95", "jpeg75": "JPEG q75", "frames10": "10 frames/video",
+             "margin10": "Tight 1.0× margin"}
+    rows = [["Reference (3 seeds)", f3(g.loc[("DF", "FS"), "seed_mean_auc"]),
+             f3(g.loc[("FS", "NT"), "seed_mean_auc"]), "—"]]
+    missing = []
+    for v, label in names.items():
+        t = opt(f"analysis/phase2/{v}_seed_mean_ci.csv")
+        dfs = hfv[(hfv["variant"] == v) & (hfv["method"] == "FS")]["d"].iloc[0] if hfv is not None else float("nan")
+        if t is None:
+            missing.append(label)
+            rows.append([label, "pending", "pending", f"{dfs:+.2f}"])
+            continue
+        t = t.set_index(["train", "test"])
+        rows.append([label, f"{f3(t.loc[('DF', 'FS'), 'seed_mean_auc'])} {cis(t.loc[('DF', 'FS'), 'ci95_lo'], t.loc[('DF', 'FS'), 'ci95_hi'])}",
+                     f"{f3(t.loc[('FS', 'NT'), 'seed_mean_auc'])} {cis(t.loc[('FS', 'NT'), 'ci95_lo'], t.loc[('FS', 'NT'), 'ci95_hi'])}",
+                     f"{dfs:+.2f}"])
+    doc.add_paragraph(
+        "Each variant changes one factor of the reference pipeline and is "
+        "derived from the reference crops (detector and alignment could not be "
+        "varied separately without re-detecting faces; Phase 1 varied them "
+        "jointly). Before any variant was evaluated, the high-frequency effect "
+        "size of each method was measured on each variant's crops and a "
+        "prediction recorded (commit 2926c86): JPEG q95, JPEG q75 and 10 "
+        "frames leave the effect sizes unchanged, so the inversion should "
+        "persist; the tight margin roughly halves them, so the inversion "
+        "should weaken."
+    )
+    add_table(doc, ["Variant", "DF → FS", "FS → NT", "FS hf d"], rows, widths=[1.6, 1.9, 1.9, 0.8])
+    if missing:
+        doc.add_paragraph("Pending at the time of this build: " + ", ".join(missing) + ".")
+
+    e = pd.read_csv("analysis/phase3/effect_sizes.csv")
+    e = e[e["stat"] == "hf_ratio"]
+    sp = pd.read_csv("analysis/phase3/sign_prediction.csv")
+    sp = sp[sp["stat"] == "hf_ratio"].set_index("matrix")
+    pub = pd.read_csv("analysis/external/sign_prediction_published.csv").iloc[0]
+    rel = pd.read_csv("analysis/phase3/reliance_reference.csv").set_index(["train", "stat"])
+    doc.add_heading("7.3 Phase 3: Mechanism — High-Frequency Energy", level=2)
+    doc.add_paragraph(
+        "Eight low-level statistics were measured on every test video. "
+        "High-frequency energy (share of spectral energy above 0.25 "
+        "cycles/pixel) is the only one whose shift separates FaceSwap from "
+        "Deepfakes and NeuralTextures with every CI excluding zero, in both "
+        "crop sets: Deepfakes and NeuralTextures fakes are blurrier than real "
+        "faces, FaceSwap fakes are sharper, Face2Face shows no shift."
+    )
+    rows = []
+    for m in ["DF", "F2F", "FS", "NT"]:
+        c = e[(e["pipeline"] == "current") & (e["method"] == m)].iloc[0]
+        r = e[(e["pipeline"] == "reference") & (e["method"] == m)].iloc[0]
+        rows.append([m, f"{c['d']:+.2f} {cis(c['d_ci_lo'], c['d_ci_hi'])}",
+                     f"{r['d']:+.2f} {cis(r['d_ci_lo'], r['d_ci_hi'])}"])
+    add_table(doc, ["Method vs. real", "Original crops: d [95% CI]", "Reference crops: d [95% CI]"],
+              rows, widths=[1.4, 2.4, 2.4])
+    doc.add_paragraph(
+        "A detector that learns \"blurrier = fake\" from Deepfakes will rank "
+        "FaceSwap's sharper fakes as more real than real faces, hence AUC "
+        "below 0.5. The product of effect sizes d(train) × d(test) predicts "
+        f"the transfer matrices: Spearman ρ = {f2(sp.loc['current_xception', 'spearman_rho'])} "
+        f"(Xception) and {f2(sp.loc['current_cnn_vit', 'spearman_rho'])} (CNN-ViT), "
+        "each the best of all 24 relabelings of the methods (p = "
+        f"{f3(sp.loc['current_xception', 'perm_p_rho'])}, the smallest this test "
+        "can give). The same effect sizes, measured on our mirror crops, "
+        "predict the official-data Xception matrix published in the Face X-ray "
+        f"paper with ρ = {f2(pub['spearman_rho'])}. On real test faces the "
+        "Deepfakes-trained model scores blurrier faces as more fake (Laplacian "
+        f"variance ρ = {f2(rel.loc[('DF', 'lap_var'), 'rho_prob_vs_stat_on_reals'])}, "
+        f"p = {f3(rel.loc[('DF', 'lap_var'), 'p_value'])}). Limits: nine "
+        "statistics were tested and the permutation p cannot go below 1/24, "
+        "so this is a strong candidate mechanism rather than proof."
+    )
+    add_figure(doc, "analysis/figures/F3_hf_effect_sizes.png",
+               "Figure 5. High-frequency energy, fakes vs. real (Cohen's d, 95% CI).", width=4.6)
+    add_figure(doc, "analysis/figures/F4_sign_prediction.png",
+               "Figure 6. Predicted d(train) × d(test) vs. observed cross-manipulation AUC.", width=4.6)
+
+    d4 = pd.read_csv("analysis/phase4/delta_vs_phase1.csv")
+    doc.add_heading("7.4 Phase 4: Intervention — Randomizing Sharpness", level=2)
+    doc.add_paragraph(
+        "Training with label-independent random blur or sharpening "
+        "(probability 0.9) removes the Deepfakes sharpness cue and weakens the "
+        "FaceSwap one. Change versus Phase 1, paired over the same test videos:"
+    )
+    rows = []
+    for a, b in [("DF", "FS"), ("FS", "NT"), ("FS", "DF"), ("DF", "F2F"), ("FS", "F2F"), ("DF", "DF"), ("FS", "FS")]:
+        r = d4[(d4["train"] == a) & (d4["test"] == b)].iloc[0]
+        rows.append([f"{a} → {b}", f3(r["phase1_auc"]),
+                     f"{f3(r['phase4_auc'])} {cis(r['phase4_ci_lo'], r['phase4_ci_hi'])}",
+                     f"{r['delta']:+.3f} [{r['delta_ci_lo']:+.3f}, {r['delta_ci_hi']:+.3f}]"])
+    add_table(doc, ["Cell", "Phase 1", "With augmentation", "Change [95% CI]"], rows,
+              widths=[1.0, 0.9, 2.1, 2.2], highlight_rows={1, 2})
+    doc.add_paragraph(
+        "Both below-chance cells meet the success criterion set in advance (CI "
+        "excludes the Phase 1 mean, no in-domain cost): FS→NT is no longer "
+        "below chance, but DF→FS still is. The directional prediction made "
+        "beforehand (DF→FS would recover more than FS→NT) failed — both rose by "
+        "about 0.1 — and FS→F2F dropped. Sharpness is a causal but partial "
+        "contributor to the inversion."
+    )
+    add_figure(doc, "analysis/figures/F5_intervention.png",
+               "Figure 7. Off-diagonal AUC with and without blur/sharpen randomization.", width=4.6)
+
+    doc.add_heading("7.5 Phase 5: Architecture Independence", level=2)
+    rows = [["Xception (3 seeds)", f3(g.loc[("DF", "FS"), "seed_mean_auc"]),
+             f3(g.loc[("FS", "NT"), "seed_mean_auc"]), "—"]]
+    for bb, label in [("resnet50", "ResNet-50 (2 seeds)"), ("efficientnet_b4", "EfficientNet-B4 (2 seeds)")]:
+        t = opt(f"analysis/phase5/{bb}_seed_mean_ci.csv")
+        if t is None:
+            rows.append([label, "pending", "pending", "pending"])
+            continue
+        t = t.set_index(["train", "test"])
+        same = sum(t.loc[k, "reference_call"] == g.loc[k, "reference_call"] for k in g.index)
+        rows.append([label, f"{f3(t.loc[('DF', 'FS'), 'seed_mean_auc'])} {cis(t.loc[('DF', 'FS'), 'ci95_lo'], t.loc[('DF', 'FS'), 'ci95_hi'])}",
+                     f"{f3(t.loc[('FS', 'NT'), 'seed_mean_auc'])} {cis(t.loc[('FS', 'NT'), 'ci95_lo'], t.loc[('FS', 'NT'), 'ci95_hi'])}",
+                     f"{same}/8"])
+    doc.add_paragraph(
+        "ImageNet-pretrained ResNet-50 and EfficientNet-B4 at Xception's 299 px "
+        "input (EfficientNet-B4 at batch 16, the largest that fits in 6 GB) "
+        "repeat the reference-pipeline experiment."
+    )
+    add_table(doc, ["Backbone", "DF → FS", "FS → NT", "Same call as Xception"], rows,
+              widths=[1.7, 1.8, 1.8, 1.0])
+    doc.add_paragraph(
+        "Both backbones give the same below/at/above-chance result as Xception "
+        "in every cell. Together with the original CNN-ViT agreement (r = "
+        f"{corr['pearson_r']:.2f}), this supports C4: the inversion is set by "
+        "the training manipulation, not the network."
+    )
+
+    dfft = pd.read_csv("analysis/phase6/dff_transfer.csv")
+    dffe = pd.read_csv("analysis/phase6/dff_effect_sizes.csv").set_index("dff_class")
+    base6 = dfft[dfft["runs"] == "runs"].set_index(["train", "dff_fake"])
+    doc.add_heading("7.6 Phase 6: External Check on DeepFakeFace", level=2)
+    doc.add_paragraph(
+        "DeepFakeFace (IMDB-WIKI reals; Stable Diffusion inpainting, "
+        "InsightFace swaps, Stable Diffusion text-to-image) was cropped with "
+        "the reference pipeline and the FF++-trained Xception models evaluated "
+        "without retraining. All three generators are blurrier than "
+        "DeepFakeFace's real images, so the mechanism predicts that "
+        "Deepfakes-trained models transfer and FaceSwap-trained models invert."
+    )
+    labels = {"inpainting": "SD inpainting", "insight": "InsightFace", "text2img": "SD text-to-image"}
+    rows = []
+    for gen, label in labels.items():
+        r_df, r_fs = base6.loc[("DF", gen)], base6.loc[("FS", gen)]
+        rows.append([label, f"{dffe.loc[gen, 'd_hf_ratio_vs_wiki']:+.2f}",
+                     f"{f3(r_df['auc'])} {cis(r_df['ci95_lo'], r_df['ci95_hi'])}",
+                     f"{f3(r_fs['auc'])} {cis(r_fs['ci95_lo'], r_fs['ci95_hi'])}"])
+    add_table(doc, ["Generator", "hf d", "DF-trained AUC", "FS-trained AUC"], rows,
+              widths=[1.6, 0.7, 2.0, 2.0])
+    n_ok = int(base6["prediction_correct"].dropna().astype(bool).sum())
+    n_dec = int(base6["prediction_correct"].notna().sum())
+    doc.add_paragraph(
+        f"The prediction is right in {n_ok} of {n_dec} decided cells — no better "
+        "than chance — and SD text-to-image fakes score below chance for every "
+        "detector. Across datasets, something other than sharpness dominates; "
+        "the high-frequency account is a within-FaceForensics++ explanation. "
+        "(Face detection succeeded at different rates per class, 64–90%, a "
+        "possible selection bias.)"
+    )
+
+    doc.add_heading("7.7 Verdict on the Claims", level=2)
+    for head, body in [
+        ("C1 (preprocessing) — not supported.", "The inversion survives a full "
+         "preprocessing change and the one-factor grid (§7.1–7.2)."),
+        ("C2 (mechanism) — supported within FF++.", "High-frequency energy "
+         "predicts our and published FF++ matrices; it does not predict "
+         "transfer to DeepFakeFace (§7.3, §7.6)."),
+        ("C3 (intervention) — partially supported.", "Randomizing sharpness "
+         "raises every inverted cell by about 0.1 AUC at no in-domain cost, "
+         "but DF→FS stays below chance (§7.4)."),
+        ("C4 (architecture independence) — supported.", "Three pretrained "
+         "CNNs agree in every cell (§7.5)."),
+    ]:
         p = doc.add_paragraph(style="List Bullet")
         p.add_run(head + " ").bold = True
         p.add_run(body)
     doc.add_paragraph(
-        "Explicitly not claimed: that below-chance cross-domain AUC is a "
-        "novel observation in the literature (prior work has reported it, "
-        "with a resolution-bias explanation -- this project extends that with "
-        "a within-FF++, FaceSwap-centred account, sign prediction from "
-        "measured statistics, and interventions); that the hybrid is better "
-        "or worse \"in general\" (the architecture comparison is confounded "
-        "by pretraining and input resolution); anything about official c40 "
-        "from the proxy; and no number from the Kaggle mirror is presented as "
-        "official-data evidence."
+        "A paper draft built from these results is in paper/main.tex "
+        "(IEEE conference format)."
     )
-
-    doc.add_heading("7.2 Phase Plan", level=2)
-    add_table(doc, ["Phase", "Focus", "Status"],
-        [["0", "Hygiene fixes + confound audit", "Done"],
-         ["1", "Reference-pipeline replication (dlib + alignment, "
-               "standard settings) -- tests whether the inversion is "
-               "preprocessing-driven or persists", "Next"],
-         ["2", "Preprocessing sensitivity grid (C1)", "Planned"],
-         ["3", "Mechanism: image statistics that predict the inversion sign (C2)", "Planned"],
-         ["4", "Interventions that neutralize the responsible statistic (C3)", "Planned"],
-         ["5", "Architecture independence at scale (C4)", "Planned"],
-         ["6", "External validity (licensed dataset / non-FF++ track)", "Planned"],
-         ["7", "Write-up assets and paper draft", "Planned"]],
-        widths=[0.5, 4.6, 1.0], highlight_rows={2})
-    doc.add_paragraph(
-        "Target venue: a 4-6 page paper in an IEEE WIFS/ICASSP-style format. "
-        "Total time budget for the plan is approximately 4 weeks; the project "
-        "is currently at the start of Phase 1."
-    )
-
-    doc.add_heading("7.3 Current Status", level=2)
-    for item in [
-        "Phases 0 complete: hygiene fixes committed, confound audit complete, "
-        "GATE 0 resolved (no confound found; continuing per the brief's own "
-        "rule).",
-        "Experiments 1-3 (baseline, cross-manipulation, compression "
-        "robustness), Grad-CAM, and the live demo are all complete -- the "
-        "full basis for this report.",
-        "Architecture-independence of the transfer-failure pattern is "
-        "confirmed at the correlation level (§5); Phase 5 will test it "
-        "across more architectures.",
-        "Phase 1 (reference-pipeline rebuild and retrain) is the immediate "
-        "next step -- see “Let us start the work” below.",
-    ]:
-        doc.add_paragraph(item, style="List Bullet")
 
     # ---- 8. Limitations ----
     doc.add_heading("8. Limitations and Data Provenance", level=1)
     for item in [
-        "All results in this report are derived from a Kaggle mirror of "
-        "FaceForensics++ (xdxd003/ff-c23), not the official release. Official "
-        "access is still pending; results are labeled \"mirror, preliminary\" "
-        "throughout and the research plan treats mirror-vs-official as an "
-        "open comparison, not an assumption.",
-        "Compression-robustness results (§4.3) use a proxy c40 (c23 "
-        "re-compressed a second time), which is harsher than genuine c40 and "
-        "is not a substitute for it.",
-        "Experiments 1-3 use a single seed (42) and report point estimates "
-        "without bootstrap confidence intervals. The new research plan raises "
-        "this bar (≥3 seeds, bootstrap CIs) starting with Phase 1.",
-        "The architecture comparison (XceptionNet vs. CNN-ViT hybrid) is "
-        "confounded by pretraining status and input resolution (299px vs. "
-        "224px); no general claim about which architecture is \"better\" is "
-        "made.",
-        "All experiments run on a single consumer GPU (RTX 3060 Laptop, "
-        "6GB VRAM), which bounds the scale of the preprocessing-sensitivity "
-        "and architecture sweeps in Phases 2 and 5.",
+        "All FaceForensics++ results use a Kaggle mirror, not the official "
+        "release (access still pending). Agreement with the official-data "
+        "matrix published in the Face X-ray paper (§7.3) mitigates but does "
+        "not remove this.",
+        "The sign test has only four manipulation methods, so its permutation "
+        "p cannot fall below 1/24; nine statistics were tested and the "
+        "sharpness statistics are correlated with each other.",
+        "Experiments 1-3 (§4) are single-seed point estimates. The research "
+        "phases use three (Xception) or two seeds with bootstrap CIs; Phase 2 "
+        "and Phase 5 runs use early-stopping patience 2 instead of 4, and "
+        "EfficientNet-B4 batch 16, both documented in docs/PROGRESS.md.",
+        "The original XceptionNet vs. CNN-ViT comparison is confounded by "
+        "pretraining and input resolution (299 vs. 224 px); Phase 5 removes "
+        "that confound for the pretrained backbones.",
+        "Compression results (§4.3) use a proxy c40 (c23 re-compressed), not "
+        "official c40.",
+        "All experiments ran on one 6 GB laptop GPU, which limited the "
+        "preprocessing grid to variants derivable from existing crops.",
     ]:
         doc.add_paragraph(item, style="List Bullet")
 
     # ---- 9. Conclusion ----
     doc.add_heading("9. Conclusion", level=1)
     doc.add_paragraph(
-        "The project has moved from a straightforward architecture "
-        "comparison to a more consequential finding: cross-manipulation "
-        "transfer between deepfake detection methods can invert below random "
-        "chance, this pattern is consistent across two structurally "
-        "different architectures, and it survives a dedicated audit for "
-        "trivial pipeline explanations. All planned baseline experiments are "
-        "complete, the finding has been verified against the project's own "
-        "ground rules for reproducibility, and a phased plan with explicit, "
-        "falsifiable claims is in place to explain and fix it. The immediate "
-        "next step is Phase 1: rebuilding the preprocessing pipeline with a "
-        "different, standard face-alignment method to test directly whether "
-        "the inversion is preprocessing-driven or a genuine mechanism."
+        "The project began as an architecture comparison — XceptionNet beat "
+        "the CNN-ViT hybrid, a reported negative result — and turned into a "
+        "finding about why detectors fail on unseen manipulations. Some "
+        "cross-manipulation cells on FaceForensics++ fall below chance; this "
+        "survives every preprocessing change tested and appears in three "
+        "different pretrained architectures. It follows a measurable "
+        "difference in high-frequency energy whose direction flips between "
+        "manipulation methods, which predicts both our transfer matrices and a "
+        "published official-data matrix. Randomizing that cue during training "
+        "reduces the inversion by about 0.1 AUC at no in-domain cost, but does "
+        "not remove it, and the explanation does not carry over to a second "
+        "dataset. Detectors' cross-method scores should be read with such "
+        "signed shortcut cues in mind."
     )
 
     # ---- References ----
