@@ -750,7 +750,7 @@ original from-scratch CNN-ViT agreed at r = 0.94).
 
 ## Phase 2: preprocessing grid -- predictions recorded before results
 
-Recorded 2026-10-19 ~10:45, while the first Phase 2 model (JPEG q75, DF seed 1)
+Recorded 2026-10-19 10:32 (commit 2926c86), while the first Phase 2 model (JPEG q75, DF seed 1)
 was still training; no Phase 2 evaluation existed yet.
 `experiments/phase2/hf_by_variant.py` -> `analysis/phase2/hf_d_by_variant.csv`
 (hf_ratio Cohen's d, method vs. real, 700 test videos, 8 frames each):
