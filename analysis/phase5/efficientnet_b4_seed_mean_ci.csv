@@ -1,0 +1,9 @@
+model,train,test,n_seeds,n_videos,seed_mean_auc,ci95_lo,ci95_hi,seed_sd,per_seed_auc,reference_call,current_pipeline_auc,data_source
+efficientnet_b4,DF,DF,2,280,0.9999,0.9995,1.0,0.0,0.9998;0.9999,above chance,0.9999,mirror (preliminary)
+efficientnet_b4,DF,F2F,2,280,0.7423,0.6886,0.7938,0.0213,0.7573;0.7272,above chance,0.7421,mirror (preliminary)
+efficientnet_b4,DF,FS,2,280,0.2644,0.2165,0.3173,0.0111,0.2722;0.2565,below chance,0.2562,mirror (preliminary)
+efficientnet_b4,DF,NT,2,280,0.8086,0.7637,0.8511,0.0116,0.8168;0.8004,above chance,0.8123,mirror (preliminary)
+efficientnet_b4,FS,DF,2,280,0.4771,0.4187,0.5438,0.0927,0.5427;0.4116,at chance,0.5013,mirror (preliminary)
+efficientnet_b4,FS,F2F,2,280,0.6495,0.5874,0.7054,0.0042,0.6465;0.6525,above chance,0.7003,mirror (preliminary)
+efficientnet_b4,FS,FS,2,280,0.9997,0.999,1.0,0.0001,0.9998;0.9996,above chance,1.0,mirror (preliminary)
+efficientnet_b4,FS,NT,2,280,0.361,0.3024,0.4222,0.0463,0.3937;0.3283,below chance,0.3953,mirror (preliminary)

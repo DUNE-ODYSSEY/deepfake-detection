@@ -725,3 +725,25 @@ published FF++ matrices) and does not carry to another dataset, where other
 differences dominate (hypothesis, untested: IMDB-WIKI still photos are out of
 distribution for detectors trained on YouTube frames). Phase 4 (hf-aug) models
 behave similarly (rows with runs=phase4_hfaug in dff_transfer.csv).
+
+## Phase 5: architecture independence (C4) -- done
+
+**Status: done** 2026-10-19 10:28. Reference crops, DF-only and FS-only, 2
+seeds, patience 2 (deviation from Phase 1's 4: validation AUC saturates at 1.0
+in the first epochs, so the kept checkpoint is essentially unaffected).
+ImageNet-pretrained, 299 px input like Xception: ResNet-50 (23.5M params,
+batch 32) and EfficientNet-B4 (17.6M; **batch 16** -- `experiments/bench_batch.py`
+measured 6.91 GB peak at batch 32 on the 6 GB card, which would page to system
+RAM). Outputs `analysis/phase5/{resnet50,efficientnet_b4}_seed_mean_ci.csv`.
+
+| Cell | Xception (3 seeds) | ResNet-50 (2) | EfficientNet-B4 (2) |
+|---|---|---|---|
+| DF->FS | 0.258 [0.213, 0.307] | 0.291 [0.240, 0.346] | 0.264 [0.217, 0.317] |
+| FS->NT | 0.428 [0.365, 0.487] | 0.416 [0.354, 0.480] | 0.361 [0.302, 0.422] |
+| FS->DF | 0.469 (at chance) | 0.450 (at chance) | 0.477 (at chance) |
+| DF->DF / FS->FS | ~1.000 | ~1.000 | ~1.000 |
+
+Both backbones reproduce Xception's below/at/above-chance call in **8/8**
+cells. C4 supported: the inversion is set by the training manipulation, not
+the architecture (among ImageNet-pretrained CNNs at matched input size; the
+original from-scratch CNN-ViT agreed at r = 0.94).
