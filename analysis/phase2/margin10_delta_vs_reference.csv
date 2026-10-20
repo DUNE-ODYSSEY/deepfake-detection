@@ -1,0 +1,9 @@
+train,test,n_seeds_phase1,n_seeds_phase4,phase1_auc,phase1_ci_lo,phase1_ci_hi,phase4_auc,phase4_ci_lo,phase4_ci_hi,delta,delta_ci_lo,delta_ci_hi,in_domain,phase1_below_chance,phase4_below_chance,criterion_ci_excludes_phase1_mean,criterion_in_domain_drop_le_0.02,data_source
+DF,DF,3,2,0.9999,0.9997,1.0,0.9999,0.9997,1.0,-0.0,-0.0002,0.0002,True,False,False,,True,mirror (preliminary)
+DF,F2F,3,2,0.6939,0.6403,0.7451,0.6871,0.6294,0.7454,-0.0068,-0.0368,0.0225,False,False,False,,,mirror (preliminary)
+DF,FS,3,2,0.2581,0.2125,0.3068,0.259,0.2058,0.3121,0.0008,-0.0345,0.034,False,True,True,False,,mirror (preliminary)
+DF,NT,3,2,0.7585,0.7098,0.8042,0.7901,0.7421,0.8364,0.0316,0.0042,0.0562,False,False,False,,,mirror (preliminary)
+FS,DF,3,2,0.4691,0.4114,0.5339,0.5271,0.4635,0.5912,0.058,0.0224,0.0953,False,False,False,,,mirror (preliminary)
+FS,F2F,3,2,0.6779,0.6181,0.7338,0.6406,0.5772,0.6989,-0.0373,-0.0733,-0.0019,False,False,False,,,mirror (preliminary)
+FS,FS,3,2,0.9996,0.999,1.0,0.9995,0.9984,1.0,-0.0001,-0.0007,0.0002,True,False,False,,True,mirror (preliminary)
+FS,NT,3,2,0.4282,0.3652,0.4868,0.4701,0.4075,0.5321,0.0419,0.0033,0.0843,False,True,False,False,,mirror (preliminary)

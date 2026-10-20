@@ -50,6 +50,8 @@ def main():
     p.add_argument("--out", default="analysis/phase4/delta_vs_phase1.csv")
     p.add_argument("--n-resamples", type=int, default=1000)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--no-figure", action="store_true",
+                   help="skip F5 (use when comparing other conditions, e.g. Phase 2 variants)")
     args = p.parse_args()
     rng = np.random.default_rng(args.seed)
 
@@ -93,6 +95,8 @@ def main():
     print(df[["train", "test", "n_seeds_phase4", "phase1_auc", "phase4_auc", "phase4_ci_lo",
               "phase4_ci_hi", "delta", "delta_ci_lo", "delta_ci_hi"]].to_string(index=False))
 
+    if args.no_figure:
+        return
     off = df[~df["in_domain"]].reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(3.4, 2.6))
     y = np.arange(len(off))[::-1]

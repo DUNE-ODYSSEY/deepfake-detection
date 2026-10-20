@@ -133,6 +133,15 @@ for variant, tag in [("jpeg95", "hi"), ("jpeg75", "lo"), ("frames10", "fr"), ("m
     if hfv is not None:
         for mth in ["DF", "FS", "NT"]:
             put(f"gridhf{tag}{M[mth]}", float(hfv[(hfv["variant"] == variant) & (hfv["method"] == mth)]["d"].iloc[0]))
+    dv = opt_csv(f"analysis/phase2/{variant}_delta_vs_reference.csv")
+    for a, c in [("DF", "FS"), ("FS", "NT"), ("FS", "DF")]:
+        k = f"griddelta{tag}{M[a]}{M[c]}"
+        row = None if dv is None else dv[(dv["train"] == a) & (dv["test"] == c)]
+        if row is not None and len(row):
+            r = row.iloc[0]
+            put(k, r["delta"], "{:+.3f}"); put(f"{k}ci", ci(r["delta_ci_lo"], r["delta_ci_hi"], "{:+.3f}"))
+        else:
+            macros[k] = macros[f"{k}ci"] = r"\pending"
     g2 = opt_csv(f"analysis/phase2/{variant}_seed_mean_ci.csv")
     for a, c in [("DF", "FS"), ("FS", "NT"), ("DF", "DF")]:
         k = f"grid{tag}{M[a]}{M[c]}"

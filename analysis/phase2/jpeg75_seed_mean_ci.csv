@@ -1,0 +1,9 @@
+model,train,test,n_seeds,n_videos,seed_mean_auc,ci95_lo,ci95_hi,seed_sd,per_seed_auc,reference_call,current_pipeline_auc,data_source
+xception,DF,DF,2,280,0.9999,0.9995,1.0,0.0002,1.0000;0.9997,above chance,0.9999,mirror (preliminary)
+xception,DF,F2F,2,280,0.7098,0.6581,0.7614,0.0459,0.6773;0.7422,above chance,0.7421,mirror (preliminary)
+xception,DF,FS,2,280,0.2901,0.2414,0.3451,0.0135,0.2996;0.2805,below chance,0.2562,mirror (preliminary)
+xception,DF,NT,2,280,0.7601,0.7113,0.8091,0.0107,0.7677;0.7526,above chance,0.8123,mirror (preliminary)
+xception,FS,DF,2,280,0.5668,0.5036,0.6278,0.0545,0.6053;0.5282,above chance,0.5013,mirror (preliminary)
+xception,FS,F2F,2,280,0.6131,0.5504,0.6728,0.0677,0.6610;0.5653,above chance,0.7003,mirror (preliminary)
+xception,FS,FS,2,280,0.9981,0.9954,0.9999,0.0,0.9981;0.9982,above chance,1.0,mirror (preliminary)
+xception,FS,NT,2,280,0.4724,0.411,0.5317,0.0586,0.5138;0.4310,at chance,0.3953,mirror (preliminary)

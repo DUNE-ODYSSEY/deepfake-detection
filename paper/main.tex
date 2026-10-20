@@ -152,8 +152,25 @@ while all pairings with \FF\ stay above chance. The reference pipeline,
 which changes every preprocessing choice at once, reproduces the matrix to
 within \refmaxdiff\ AUC per cell: \tr{\DF}{\FS} is \refdffs~\refdffsci\ and
 \tr{\FS}{\NT} \reffsnt~\reffsntci, both below chance, while \tr{\FS}{\DF}
-(\reffsdf~\reffsdfci) is at chance. Table~\ref{tab:grid} varies single
-preprocessing factors from the reference pipeline.
+(\reffsdf~\reffsdfci) is at chance.
+
+Table~\ref{tab:grid} then varies single factors of the reference pipeline,
+each derived from the reference crops. Before any variant was evaluated, we
+measured each method's high-frequency effect size on each variant's crops and
+recorded predictions: JPEG q95, JPEG q75 and 10 frames leave the effect sizes
+almost unchanged, so the inversion should persist, while the tight 1.0$\times$
+margin roughly halves them ($d_{\DF}=\gridhfmgdf$, $d_{\FS}=+\gridhfmgfs$), so
+the inversion should weaken. \tr{\DF}{\FS} did not move under any variant
+(paired changes \griddeltahidffs, \griddeltalodffs, \griddeltafrdffs,
+\griddeltamgdffs), so the tight-margin prediction failed for this cell: the
+cue the \DF-trained detector uses survives removing the face border even though
+our summary statistic shrinks. The \FS-trained row was the sensitive one.
+Under JPEG q75 and the tight margin, \tr{\FS}{\NT} rose
+(\griddeltalofsnt~\griddeltalofsntci; \griddeltamgfsnt~\griddeltamgfsntci)
+and \tr{\FS}{\DF} rose with it, the same pattern as the blur/sharpen
+intervention below. The JPEG q75 shift was not predicted. High-frequency
+energy therefore captures the \emph{direction} of each transfer better than
+its \emph{size}.
 The CNN-ViT hybrid, trained from scratch, fails in the same pattern as
 Xception across the 12 off-diagonal cells (Pearson $r=\archr$, Spearman
 $\rho=\archrho$; Fig.~\ref{fig:arch}), and Table~\ref{tab:arch} extends this
