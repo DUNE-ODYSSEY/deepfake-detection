@@ -168,7 +168,10 @@ our summary statistic shrinks. The \FS-trained row was the sensitive one.
 Under JPEG q75 and the tight margin, \tr{\FS}{\NT} rose
 (\griddeltalofsnt~\griddeltalofsntci; \griddeltamgfsnt~\griddeltamgfsntci)
 and \tr{\FS}{\DF} rose with it, the same pattern as the blur/sharpen
-intervention below. The JPEG q75 shift was not predicted. High-frequency
+intervention below. The JPEG q75 shift was not predicted. \tr{\FS}{\DF},
+which sits at chance in the reference, moved under every variant but not
+consistently (\griddeltahifsdf\ for JPEG q95, \griddeltafrfsdf\ for 10
+frames), so we do not interpret it. High-frequency
 energy therefore captures the \emph{direction} of each transfer better than
 its \emph{size}.
 The CNN-ViT hybrid, trained from scratch, fails in the same pattern as
@@ -208,7 +211,7 @@ Tight 1.0$\times$ margin & \gridmgdffs & \gridmgfsnt & \gridmgdfdf \\
 High-frequency energy is the only statistic whose shift separates \FS\ from
 \DF\ and \NT\ with every CI excluding zero, in both crop sets
 (Fig.~\ref{fig:hf}): \DF\ $d=\hfcurdf$~\hfcurdfci, \NT\ $\hfcurnt$~\hfcurntci,
-\FS\ $+\hfcurfs$~\hfcurfsci, \FF\ $\hfcurff$~\hfcurffci in the original
+\FS\ $+\hfcurfs$~\hfcurfsci, \FF\ $\hfcurff$~\hfcurffci{} in the original
 crops, with the same pattern in the reference crops. Comparing each fake to
 the real video it was made from strengthens it (paired $d$: \DF\
 \hfcurdfpaired, \NT\ \hfcurntpaired, \FS\ $+\hfcurfspaired$). \DF\ and \NT\
