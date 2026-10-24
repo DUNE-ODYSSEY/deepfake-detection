@@ -1,0 +1,7 @@
+panel,curve,auc,n_videos
+baseline,XceptionNet,0.9957908163265305,700
+baseline,CNN-ViT hybrid,0.9835969387755102,700
+cross_DF_seed1,Deepfakes,0.9997959183673469,280
+cross_DF_seed1,Face2Face,0.6741836734693878,280
+cross_DF_seed1,NeuralTextures,0.8073979591836735,280
+cross_DF_seed1,FaceSwap,0.2376020408163265,280
