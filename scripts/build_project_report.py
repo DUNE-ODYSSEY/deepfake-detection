@@ -1,4 +1,4 @@
-"""Build docs/project_report.docx -- formal written project report.
+﻿"""Build docs/project_report.docx -- formal written project report.
 
 Companion to docs/progress_update.pptx (slide version of the same update)
 and docs/mid_review_update.pptx (the separately-scoped formal mid-review
@@ -12,6 +12,8 @@ import json
 from pathlib import Path
 
 import pandas as pd
+
+pubm = pd.read_csv("analysis/external/facexray_table1_xception.csv", index_col=0)
 from docx import Document
 from docx.shared import Inches, Pt, Mm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -432,10 +434,12 @@ def main():
         f"{xc_mat['FS']['NT']}, NT→FS {xc_mat['NT']['FS']}; CNN-ViT: "
         f"DF→FS {cv_mat['DF']['FS']}, FS→DF {cv_mat['FS']['DF']}, "
         f"FS→NT {cv_mat['FS']['NT']}, NT→FS {cv_mat['NT']['FS']}); "
-        "pairings with Face2Face do not. Published work on this benchmark "
-        "typically reports Xception DF→FS around 0.70 -- our pipeline "
-        "either creates this inversion or standard pipelines hide it, which "
-        "is exactly what Phase 1 of the new research plan tests."
+        "pairings with Face2Face do not. On official FaceForensics++ data, "
+        "the Face X-ray paper (Li et al., CVPR 2020, Table 1) reports Xception "
+        f"DF→FS {pubm.loc['DF', 'FS']:.2f} and NT→FS {pubm.loc['NT', 'FS']:.2f}, "
+        "so FaceSwap is already the hardest target in published work; whether "
+        "our pipeline deepens this into a clear inversion is what Phase 1 of "
+        "the research plan tests (Section 7)."
     )
 
     doc.add_heading("4.3 Experiment 3: Compression Robustness (c23 → c40, proxy)", level=2)
